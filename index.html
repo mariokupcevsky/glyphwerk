@@ -285,7 +285,7 @@ const I18N={'Vereinfachen':'Simplify',
 'Tippe einen Buchstaben an, um ihn im Text zu bearbeiten. Blasse Felder sind noch nicht gezeichnet. Akzente und Kyrillisch/Griechisch, das wie Latein aussieht, entstehen automatisch aus deinen Buchstaben.':'Tap a letter to edit it in the text. Faint cells are not drawn yet. Accents, and Cyrillic/Greek letters that look like Latin ones, are built automatically from your letters.',
 'Name, z. B. Pfeile':'Name, e.g. Arrows','Zeichen oder U+2190-U+2193':'Characters or U+2190-U+2193','Eigenen Satz anlegen':'Create own set','Zeichensätze':'Character sets','Satz löschen':'Delete set',
 'Keine Zeichen erkannt. Tippe Zeichen ein oder Codes wie U+0416.':'No characters found. Type characters or codes like U+0416.',
-'Latein':'Latin','Latein erweitert':'Latin extended','Griechisch':'Greek','Kyrillisch':'Cyrillic','Sonderzeichen':'Symbols','Varianten':'Variants','Weitere gezeichnete':'Other drawn','Eigene':'Own',
+'Latein':'Latin','Leerzeichen':'Spaces','Leerzeichen · Breite':'Space · width','Geschütztes Leerzeichen · Breite':'No-break space · width','Monospace: so breit wie alle Zeichen.':'Monospace: as wide as every character.','Wortabstand in Einheiten (1000 pro Geviert). Gilt für Leerzeichen und geschütztes Leerzeichen, wird mit exportiert. Auto folgt dem Grundabstand.':'Word space in units (1000 per em). Applies to space and no-break space and is exported. Auto follows the base spacing.','Latein erweitert':'Latin extended','Griechisch':'Greek','Kyrillisch':'Cyrillic','Sonderzeichen':'Symbols','Varianten':'Variants','Weitere gezeichnete':'Other drawn','Eigene':'Own',
 
 'Regeln':'Rules','Zeichensatz':'Glyph set','Features':'Features','Probetext':'Test text','Schrift & Export':'Font & export','Ansicht':'View','Navigation':'Navigation','Stift':'Pen',
 'Spitzfeder':'Pointed pen','Breitfeder':'Broad nib','Pinsel':'Brush','Marker':'Marker','Bézier':'Bézier','Kerning':'Kerning','Regel':'Rule','Rechteck':'Rectangle','Ellipse':'Ellipse',
@@ -661,9 +661,10 @@ const rowY=k=>ROWTOP-(k+.5)*ROWH;
 
 /* ---------- spacing ---------- */
 const MC=new Map();
+const autoSpaceW=()=>Math.round(S.spacing*3.5+40);
 function classFactor(ch){ch=kc(ch);return isUp(ch)||/[0-9]/.test(ch)?1.2:isLow(ch)?1:.8}
 function gm(ch){
-  if(ch===' ')return {empty:true,adv:S.mono||Math.round(S.spacing*3.5+40),dx:0};
+  if(ch===' '||ch==='\u00a0')return {empty:true,adv:S.mono||S.spaceW||autoSpaceW(),dx:0};
   const g=S.glyphs[ch];if(!hasInk(g))return COMPOSE[ch]?compGm(ch):PARTS[ch]?partGm(ch):ALIAS[ch]?aliasGm(ch):null;
   const kl=keyRef(ch,g.lk),kr=keyRef(ch,g.rk);
   const e=MC.get(ch);if(e&&e.v===g.v&&e.sp===S.spacing&&e.kl===kl&&e.kr===kr)return e.m;
@@ -808,7 +809,7 @@ function pairFmt1(pairs){
   return sub.a}
 function buildFont(cff){
   const chars=allChars().filter(ch=>{const m=gm(ch);return m&&!m.empty});
-  const order=['.notdef',' ',...chars];
+  const order=['.notdef',' ','\u00a0',...chars];
   const gl=order.map(ch=>{
     if(ch==='.notdef'){const nd=orient([rect(50,0,400,700),rect(100,50,300,600)]);return cff?{adv:500,...csData(nd,0,500)}:{adv:500,...glyfData(ttContours(nd,0))}}
     const m=gm(ch);if(m.empty)return cff?{adv:m.adv,...csData([],0,m.adv)}:{adv:m.adv,...glyfData([])};
@@ -1307,7 +1308,7 @@ function snap(ch){const g=S.glyphs[ch];return {ch,d:JSON.stringify(g?{c:g.c,k:g.
 function pushUndo(){const ch=curCh();if(!ch)return;undoS.push(snap(ch));if(undoS.length>200)undoS.shift();redoS.length=0;updButtons()}
 function restore(s){const d=JSON.parse(s.d);if(d){const g=S.glyphs[s.ch]||(S.glyphs[s.ch]={v:0});g.c=d.c;g.k=d.k||[];g.u=d.u||[];g.l=d.l;g.r=d.r;g.lk=d.lk||'';g.rk=d.rk||''}else delete S.glyphs[s.ch];
   sel.clear();openC=null;changed(s.ch)}
-function metaSnap(){return {m:JSON.stringify({kern:S.kern,gkern:S.gkern||{},groups:S.groups||{},spacing:S.spacing,strength:S.strength,mono:S.mono||0,ctx:S.ctx||{}})}}
+function metaSnap(){return {m:JSON.stringify({kern:S.kern,gkern:S.gkern||{},groups:S.groups||{},spacing:S.spacing,strength:S.strength,mono:S.mono||0,spaceW:S.spaceW||0,ctx:S.ctx||{}})}}
 function pushUndoMeta(){undoS.push(metaSnap());if(undoS.length>200)undoS.shift();redoS.length=0;updButtons()}
 function restoreMeta(s){Object.assign(S,JSON.parse(s.m));MC.clear();syncUI();changed(null)}
 function undo(){const s=undoS.pop();if(!s)return;if(s.m){redoS.push(metaSnap());restoreMeta(s);updButtons();return}if(s.multi){redoS.push({multi:s.multi.map(x=>snap(x.ch))});s.multi.forEach(restore)}else{redoS.push(snap(s.ch));restore(s)}updButtons()}
@@ -1322,20 +1323,20 @@ function changed(ch){if(ch){const g=S.glyphs[ch];if(g)g.v=(g.v||0)+1;dirty.add('
 function schedule(){clearTimeout(saveT);saveT=setTimeout(flush,900);setStatus('Ändert…')}
 const gid=ch=>'g_'+ch.codePointAt(0).toString(16).padStart(4,'0');
 function serial(){const g={};for(const [k,v] of Object.entries(S.glyphs))g[k]={c:v.c,k:v.k||[],l:v.l||0,r:v.r||0,...(v.u&&v.u.length?{u:v.u.map(({id,dx,dy})=>({id,dx,dy}))}:{}),...(v.lk?{lk:v.lk}:{}),...(v.rk?{rk:v.rk}:{})};
-  return {name:S.name,spacing:S.spacing,strength:S.strength,kern:S.kern,gkern:S.gkern||{},groups:S.groups||{},parts:S.parts||{},text:S.text,example:!!S.example,t:S.t,names:S.names||{},fea:S.fea||'',feaAuto:S.feaAuto!==false,ps:S.ps||[],fmt:S.fmt||{},mono:S.mono||0,sets:S.sets||[],csets:S.csets||[],ctx:S.ctx||{},glyphs:g}}
+  return {name:S.name,spacing:S.spacing,strength:S.strength,kern:S.kern,gkern:S.gkern||{},groups:S.groups||{},parts:S.parts||{},text:S.text,example:!!S.example,t:S.t,names:S.names||{},fea:S.fea||'',feaAuto:S.feaAuto!==false,ps:S.ps||[],fmt:S.fmt||{},mono:S.mono||0,spaceW:S.spaceW||0,sets:S.sets||[],csets:S.csets||[],ctx:S.ctx||{},glyphs:g}}
 async function flush(){
   try{localStorage.setItem(LOCAL_KEY,JSON.stringify(serial()))}catch(e){}
   if(!db){setStatus('Auf diesem Gerät gespeichert');dirty.clear();return}
   if(saving){schedule();return}saving=true;const keys=[...dirty];dirty.clear();
   try{for(const k of keys){
-      if(k==='meta')await db.doc(`data/users/${uid}/meta`).set({name:S.name,spacing:S.spacing,strength:S.strength,kern:JSON.stringify(S.kern),gkern:JSON.stringify(S.gkern||{}),groups:JSON.stringify(S.groups||{}),parts:JSON.stringify(S.parts||{}),text:S.text,example:!!S.example,t:S.t,names:JSON.stringify(S.names||{}),fea:S.fea||'',feaAuto:S.feaAuto!==false,ps:JSON.stringify(S.ps||[]),fmt:JSON.stringify(S.fmt||{}),mono:S.mono||0,sets:JSON.stringify(S.sets||[]),csets:JSON.stringify(S.csets||[]),ctx:JSON.stringify(S.ctx||{})});
+      if(k==='meta')await db.doc(`data/users/${uid}/meta`).set({name:S.name,spacing:S.spacing,strength:S.strength,kern:JSON.stringify(S.kern),gkern:JSON.stringify(S.gkern||{}),groups:JSON.stringify(S.groups||{}),parts:JSON.stringify(S.parts||{}),text:S.text,example:!!S.example,t:S.t,names:JSON.stringify(S.names||{}),fea:S.fea||'',feaAuto:S.feaAuto!==false,ps:JSON.stringify(S.ps||[]),fmt:JSON.stringify(S.fmt||{}),mono:S.mono||0,spaceW:S.spaceW||0,sets:JSON.stringify(S.sets||[]),csets:JSON.stringify(S.csets||[]),ctx:JSON.stringify(S.ctx||{})});
       else{const ch=k.slice(2),g=S.glyphs[ch];await db.doc(`data/users/${uid}/${gid(ch)}`).set({ch,c:JSON.stringify(g?g.c:[]),k:JSON.stringify(g?g.k||[]:[]),u:JSON.stringify(g&&g.u?g.u.map(({id,dx,dy})=>({id,dx,dy})):[]),l:g?g.l||0:0,r:g?g.r||0:0,lk:g&&g.lk||'',rk:g&&g.rk||'',t:S.t})}}
     setStatus('In deinem Konto gespeichert')}
   catch(e){for(const k of keys)dirty.add(k);setStatus('Speichern fehlgeschlagen, nur lokal');}
   saving=false}
 function setStatus(t){document.getElementById('status').textContent=t}
 function fromSerial(o){const g={};for(const [k,v] of Object.entries(o.glyphs||{}))g[k]={c:v.c||[],k:v.k||[],u:v.u||[],l:v.l||0,r:v.r||0,lk:v.lk||'',rk:v.rk||'',v:1};
-  return {name:o.name||'Meine Schrift',spacing:+o.spacing||60,strength:o.strength??50,kern:o.kern||{},gkern:o.gkern||{},groups:o.groups||{},parts:o.parts||{},glyphs:g,text:o.text||'HOT AVO nono',example:!!o.example,t:o.t||0,names:o.names||{},fea:o.fea||'',feaAuto:o.feaAuto!==false,ps:o.ps||[],fmt:o.fmt||{},mono:+o.mono||0,sets:o.sets||[],csets:o.csets||[],ctx:o.ctx||{}}}
+  return {name:o.name||'Meine Schrift',spacing:+o.spacing||60,strength:o.strength??50,kern:o.kern||{},gkern:o.gkern||{},groups:o.groups||{},parts:o.parts||{},glyphs:g,text:o.text||'HOT AVO nono',example:!!o.example,t:o.t||0,names:o.names||{},fea:o.fea||'',feaAuto:o.feaAuto!==false,ps:o.ps||[],fmt:o.fmt||{},mono:+o.mono||0,spaceW:+o.spaceW||0,sets:o.sets||[],csets:o.csets||[],ctx:o.ctx||{}}}
 function loadLocal(){try{const s=localStorage.getItem(LOCAL_KEY);if(s)return fromSerial(JSON.parse(s))}catch(e){}return null}
 async function initStore(){
   if(!window.claude||!window.claude.use){setStatus(S.example?'Beispiel, nur auf diesem Gerät':'Auf diesem Gerät gespeichert');return}
@@ -1346,7 +1347,7 @@ async function initStore(){
     let meta=null;const gl={};
     for(const doc of snapq.docs){const v=doc.data();if(!v)continue;if(doc.id==='meta')meta=v;else if(v.ch)gl[v.ch]={c:JSON.parse(v.c||'[]'),k:JSON.parse(v.k||'[]'),u:JSON.parse(v.u||'[]'),l:v.l||0,r:v.r||0,lk:v.lk||'',rk:v.rk||'',v:1}}
     if(meta&&(meta.t||0)>=(S.t||0)){
-      S={name:meta.name||'Meine Schrift',spacing:meta.spacing||60,strength:meta.strength??50,kern:JSON.parse(meta.kern||'{}'),gkern:JSON.parse(meta.gkern||'{}'),groups:JSON.parse(meta.groups||'{}'),parts:JSON.parse(meta.parts||'{}'),glyphs:gl,text:meta.text||'HOT AVO nono',example:!!meta.example,t:meta.t||0,names:JSON.parse(meta.names||'{}'),fea:meta.fea||'',feaAuto:meta.feaAuto!==false,ps:JSON.parse(meta.ps||'[]'),fmt:JSON.parse(meta.fmt||'{}'),mono:+meta.mono||0,sets:JSON.parse(meta.sets||'[]'),csets:JSON.parse(meta.csets||'[]'),ctx:JSON.parse(meta.ctx||'{}')};
+      S={name:meta.name||'Meine Schrift',spacing:meta.spacing||60,strength:meta.strength??50,kern:JSON.parse(meta.kern||'{}'),gkern:JSON.parse(meta.gkern||'{}'),groups:JSON.parse(meta.groups||'{}'),parts:JSON.parse(meta.parts||'{}'),glyphs:gl,text:meta.text||'HOT AVO nono',example:!!meta.example,t:meta.t||0,names:JSON.parse(meta.names||'{}'),fea:meta.fea||'',feaAuto:meta.feaAuto!==false,ps:JSON.parse(meta.ps||'[]'),fmt:JSON.parse(meta.fmt||'{}'),mono:+meta.mono||0,spaceW:+meta.spaceW||0,sets:JSON.parse(meta.sets||'[]'),csets:JSON.parse(meta.csets||'[]'),ctx:JSON.parse(meta.ctx||'{}')};
       MC.clear();active=Math.min(active,[...S.text].length-1);syncUI();relayout();fit();renderInsp();setStatus('In deinem Konto gespeichert')}
     else if(!S.example){dirty.add('meta');for(const ch of Object.keys(S.glyphs))dirty.add('g:'+ch);flush()}
     else setStatus('Beispiel, wird beim ersten Strich gespeichert')}
@@ -1542,6 +1543,7 @@ function renderInsp(){
     else if(it&&it.m&&!it.m.empty&&S.glyphs[ch]){const g=S.glyphs[ch];
       parts.push(`<div class="blk"><span class="lbl">Abstand ${esc(disp(ch))} links</span>${keySel(ch,'l')}${btn('l-','−')}<span class="num ${g.l?'man':''}">${it.m.lsb}</span>${btn('l+','+')}
         <span class="lbl">rechts</span>${keySel(ch,'r')}${btn('r-','−')}<span class="num ${g.r?'man':''}">${it.m.rsb}</span>${btn('r+','+')}<span class="lbl">Breite</span><span class="num">${it.m.adv}</span>${it.m.over?'<span class="note" style="color:#d33">Breiter als die Monospace-Breite</span>':''}${(g.l||g.r)?btn('sbauto','Auto'):''}</div>`)}
+    else if((ch===' '||ch==='\u00a0')&&tool!=='kern')parts.push(`<div class="blk"><span class="lbl">${ch===' '?'Leerzeichen':'Geschütztes Leerzeichen'} · Breite</span>${S.mono?'<span class="num">'+S.mono+'</span><span class="note">Monospace: so breit wie alle Zeichen.</span>':`${btn('spw-50','−50')}${btn('spw-10','−')}<span class="num ${S.spaceW?'man':''}">${S.spaceW||autoSpaceW()}</span>${btn('spw10','+')}${btn('spw50','+50')}${S.spaceW?btn('spwauto','Auto'):''}<span class="note">Wortabstand in Einheiten (1000 pro Geviert). Gilt für Leerzeichen und geschütztes Leerzeichen, wird mit exportiert. Auto folgt dem Grundabstand.</span>`}</div>`);
     else if(ch&&ch!==' '&&!sel.size&&!openC)parts.push(`<span class="note">„${esc(disp(ch))}“ ist noch leer. Mit Schreiben, Bézier, Rechteck oder Ellipse direkt in der Zeile zeichnen.</span>`);
   }
   if(tool!=='kern'&&ch&&!blank(ch)&&!sel.size&&!openC){const t=[...S.text],pr=[];const a=t[active-1],b=t[active+1];
@@ -1625,6 +1627,7 @@ insp.addEventListener('click',e=>{const b=e.target.closest('button[data-act]');i
   if(a[0]==='k'&&pickedPair&&/^k(-?\d+|auto)$/.test(a)){const pa=pickedPair.a,pb=pickedPair.b,d=a==='kauto'?0:parseInt(a.slice(1));
     if(kLevel==='g'){const k=gkKey(pa,pb);S.gkern=S.gkern||{};S.gkern[k]=(S.gkern[k]!=null?S.gkern[k]:kernInfo(pa,pb).src==='p'?autoKern(pa,pb):kernOf(pa,pb))+d}
     else{const k=kernKey(pa,pb);if(a==='kauto')delete S.kern[k];else S.kern[k]=kernOf(pa,pb)+d}changed(null);return}
+  if(/^spw/.test(a)){pushUndoMeta();S.spaceW=a==='spwauto'?0:Math.max(0,(S.spaceW||autoSpaceW())+parseInt(a.slice(3)));changed(null);return}
   switch(a){
     case 'nl':return nud(-1,0);case 'nr':return nud(1,0);case 'nu':return nud(0,1);case 'nd':return nud(0,-1);
     case 'smooth':{pushUndo();const q=[...sel][0];q.s=!q.s;if(q.s&&!q.i&&!q.o){const c=g.c.find(c=>c.p.includes(q)),i=c.p.indexOf(q),n=c.p.length,pv=c.p[(i-1+n)%n],nx=c.p[(i+1)%n];
@@ -1733,16 +1736,18 @@ function renderGrid(){const gEl=document.getElementById('grid');gEl.textContent=
   const secs=[['Latein',CHARSET]];for(const k of S.sets||[])if(SETS[k])secs.push([SETS[k].n,SETS[k].c]);
   for(const cs of S.csets||[])if(cs.on!==false)secs.push([cs.n,cleanChars(cs.c)]);
   const seen=new Set();const nm=namedChars(),rest=allChars().filter(c=>!CHARSET.includes(c)&&!setChars().includes(c)&&!nm.includes(c));
-  if(nm.length)secs.push(['Varianten',nm]);if(rest.length)secs.push(['Weitere gezeichnete',rest]);
+  secs.unshift(['Leerzeichen',[' ','\u00a0']]);if(nm.length)secs.push(['Varianten',nm]);if(rest.length)secs.push(['Weitere gezeichnete',rest]);
   const io=window.IntersectionObserver?new IntersectionObserver(es=>{for(const e of es)if(e.isIntersecting){io.unobserve(e.target);paintCell(e.target)}},{root:null,rootMargin:'300px'}):null;
   for(const [title,list] of secs){const cl=list.filter(c=>!seen.has(c));cl.forEach(c=>seen.add(c));if(!cl.length)continue;
-    const h=document.createElement('h3');h.className='gsec';const done=cl.filter(c=>{const m=gm(c);return m&&!m.empty}).length;h.textContent=`${title} · ${done}/${cl.length}`;gEl.append(h);
+    const h=document.createElement('h3');h.className='gsec';const done=cl.filter(c=>{const m=gm(c);return m&&(!m.empty||c===' '||c==='\u00a0')}).length;h.textContent=`${title} · ${done}/${cl.length}`;gEl.append(h);
     for(const ch of cl){const b=document.createElement('button');b.className='cell';b.dataset.ch=ch;
       const c=document.createElement('canvas');c.width=112;c.height=112;const sp=document.createElement('span');sp.textContent=disp(ch);b.append(c,sp);
       b.onclick=()=>{const t=[...S.text];let i=t.indexOf(ch);if(i<0){t.splice(active+1,0,ch);S.text=t.join('');i=active+1;txt.value=textToShow(S.text);changed(null)}
         document.getElementById('sheetSet').hidden=true;activate(i);focusActive()};
       gEl.append(b);if(io)io.observe(b);else paintCell(b)}}}
-function paintCell(b){const ch=b.dataset.ch,c=b.querySelector('canvas'),x=c.getContext('2d'),m=gm(ch);if(!m||m.empty)b.classList.add('empty');
+function paintCell(b){const ch=b.dataset.ch,c=b.querySelector('canvas'),x=c.getContext('2d'),m=gm(ch);
+  if(ch===' '||ch==='\u00a0'){const sc=112/1200,w=m.adv*sc;x.strokeStyle=C.accent;x.lineWidth=2;x.beginPath();x.moveTo(56-w/2,70);x.lineTo(56-w/2,82);x.lineTo(56+w/2,82);x.lineTo(56+w/2,70);x.stroke();b.querySelector('span').textContent=`${ch===' '?'space':'nbsp'} · ${m.adv}`;return}
+  if(!m||m.empty)b.classList.add('empty');
   const sc=112/1200;x.fillStyle=C.ghost;x.font=`400 ${tplSize()*sc}px ${tplCss()}`;x.textAlign='center';x.textBaseline='alphabetic';x.fillText(baseText(ch),56,112-250*sc);
   if(m&&!m.empty){x.setTransform(sc,0,0,-sc,(112-(m.b.x1-m.b.x0)*sc)/2-m.b.x0*sc,112-250*sc);x.fillStyle=C.ink;x.fill(pathOf(m.cs))}
   if(m&&!m.empty)b.querySelector('span').textContent=`${disp(ch)} · ${m.adv}`;if(m&&m.over)b.style.borderColor='#d33'}
