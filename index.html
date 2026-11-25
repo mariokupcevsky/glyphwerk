@@ -291,7 +291,7 @@ const I18N={'In Bézier':'To Bézier','Alle in Bézier':'All to Bézier','Zu kle
 'Meine Schrift':'My font','Text zum Bearbeiten':'Text to edit','Text':'Text',
 'Stift zeichnet. Finger: antippen wählt, doppelt tippen öffnet die Tastatur. Ziehen verschiebt, zwei Finger zoomen.':'The pen draws. Finger: tap selects, double-tap opens the keyboard, drag pans, two fingers zoom.',
 'Tippen schreibt an der Cursor-Stelle, Return beginnt einen neuen Absatz. Der Stift zeichnet weiter.':'Typing writes at the cursor, Return starts a new paragraph. The pen keeps drawing.',
-'Tippen setzt Ecken, ziehen setzt Kurvenpunkte. Ersten Punkt antippen schließt die Kontur. Auf eine Linie tippen fügt einen Punkt ein.':'Tap sets corners, drag sets curve points. Tap the first point to close the contour. Tap a line to add a point.',
+'Tippen setzt Ecken, ziehen setzt Kurvenpunkte. Ersten Punkt antippen schließt die Kontur. Auf eine Linie tippen fügt einen Punkt ein. Griffe (kleine Kreise) ziehen formt die Rundung, „Kurve“ gibt einer Ecke Griffe.':'Tap sets corners, drag sets curve points. Tap the first point to close the contour. Tap a line to add a point. Drag the handles (small circles) to shape the curve, “Curve” gives a corner handles.',
 'Ebene 1 Abstand: seitlich ziehen ändert den linken Abstand des Buchstabens, überall.':'Level 1 spacing: dragging sideways changes the glyph\'s left sidebearing everywhere.',
 'Ebene 2 Gruppe: seitlich ziehen gilt für alle Paare aus diesen zwei Gruppen.':'Level 2 group: dragging sideways applies to every pair from these two groups.',
 'Ebene 3 Paar: seitlich ziehen gilt nur für genau dieses Paar.':'Level 3 pair: dragging sideways applies to this exact pair only.',
@@ -1370,7 +1370,7 @@ function down(px,py,id,ev,selPtr){
     const G=curGlyph(true);pushUndo();frozen=true;
     if(openC){const f=openC.p[0];if(openC.p.length>=2&&Math.hypot(sx(f.x+gx())-px,sy(f.y)-py)<hitR){openC.z=true;const c=openC;openC=null;sel=new Set([f]);drag={kind:'handlePull',id,q:f,closing:true,c};draw();return}
       const q=P(snapV(x),snapV(y));openC.p.push(q);sel=new Set([q]);drag={kind:'handlePull',id,q};draw();return}
-    const hp=hitPoint(G,px,py);if(hp&&hp.type==='p'){sel=new Set([hp.q]);drag={kind:'move',id,lx:x,ly:y};renderInsp();draw();return}
+    const hp=hitPoint(G,px,py);if(hp&&hp.type==='h'){drag={kind:'handle',id,h:hp};draw();return}if(hp&&hp.type==='p'){sel=new Set([hp.q]);drag={kind:'move',id,lx:x,ly:y};renderInsp();draw();return}
     const hs=hitSegment(G,px,py);if(hs){const q=splitAt(hs);sel=new Set([q]);drag={kind:'move',id,lx:x,ly:y};draw();return}
     const q=P(snapV(x),snapV(y));openC={z:false,p:[q]};if(editPart&&editPart.ch===curCh())openC._pt=editPart.u.id;G.c.push(openC);sel=new Set([q]);drag={kind:'handlePull',id,q};draw();renderInsp();return}
   if(T==='rect'||T==='ellipse'){if(blank(curCh()))return;curGlyph(true);pushUndo();frozen=true;drag={kind:'shape',id,x0:snapV(x),y0:snapV(y),shape:null};return}
@@ -1471,7 +1471,7 @@ function renderInsp(){
   insp.innerHTML=parts.join('');
   const hint=document.getElementById('hint');
   if(Date.now()<toastUntil){hint.textContent=toastTxt;return}
-  hint.textContent=tool==='kern'?(kLevel==='s'?'Ebene 1 Abstand: seitlich ziehen ändert den linken Abstand des Buchstabens, überall.':kLevel==='g'?'Ebene 2 Gruppe: seitlich ziehen gilt für alle Paare aus diesen zwei Gruppen.':'Ebene 3 Paar: seitlich ziehen gilt nur für genau dieses Paar.'):tool==='pen'?'Tippen setzt Ecken, ziehen setzt Kurvenpunkte. Ersten Punkt antippen schließt die Kontur. Auf eine Linie tippen fügt einen Punkt ein.':
+  hint.textContent=tool==='kern'?(kLevel==='s'?'Ebene 1 Abstand: seitlich ziehen ändert den linken Abstand des Buchstabens, überall.':kLevel==='g'?'Ebene 2 Gruppe: seitlich ziehen gilt für alle Paare aus diesen zwei Gruppen.':'Ebene 3 Paar: seitlich ziehen gilt nur für genau dieses Paar.'):tool==='pen'?'Tippen setzt Ecken, ziehen setzt Kurvenpunkte. Ersten Punkt antippen schließt die Kontur. Auf eine Linie tippen fügt einen Punkt ein. Griffe (kleine Kreise) ziehen formt die Rundung, „Kurve“ gibt einer Ecke Griffe.':
     document.activeElement===ed?'Tippen schreibt an der Cursor-Stelle, Return beginnt einen neuen Absatz. Der Stift zeichnet weiter.':'Stift zeichnet. Finger: antippen wählt, doppelt tippen öffnet die Tastatur. Ziehen verschiebt, zwei Finger zoomen.';
 }
 let clip=null;
