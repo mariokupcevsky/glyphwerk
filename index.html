@@ -270,10 +270,13 @@ const isUp=ch=>ch!==ch.toLowerCase(),isLow=ch=>ch!==ch.toUpperCase()||ch==='ı';
 const LOCAL_KEY='glyphwerk.v1';
 let S=null;            // project
 let active=0;          // index in text
-let tool='brush',inv=false,mouseSel=false,selStroke=null;try{inv=localStorage.getItem('glyphwerk.inv')==='1'}catch(e){}
+let tool='brush',inv=false,mouseSel=false,selStroke=null,selK=new Set(),selMode='r';try{selMode=localStorage.getItem('glyphwerk.selmode')||'r'}catch(e){}
+try{inv=localStorage.getItem('glyphwerk.inv')==='1'}catch(e){}
 let LANG='de';try{LANG=localStorage.getItem('glyphwerk.lang')||((navigator.language||'de').toLowerCase().startsWith('de')?'de':'en')}catch(e){LANG=(navigator.language||'de').toLowerCase().startsWith('de')?'de':'en'}
 /* ---------- language: UI is written in German; English comes from this table (exact strings) and the patterns below ---------- */
-const I18N={'↖ Auswahl':'↖ Select','Punkte, Griffe und Striche anfassen, ohne zu zeichnen':'Grab points, handles and strokes without drawing','Auswahl: Punkte, Griffe, Konturen und Striche antippen und ziehen. Nichts wird gezeichnet.':'Select: tap and drag points, handles, contours and strokes. Nothing gets drawn.','Punkte reduzieren':'Reduce points','Weniger Punkte geht nicht, ohne die Form zu verändern.':'Fewer points are not possible without changing the shape.','Kontur':'contour','Konturen':'contours',
+const I18N={'Vereinfachen':'Simplify',
+'▭ Rechteck':'▭ Rectangle','Lasso':'Lasso','Auswahl':'Selection','Mit dem Stift ins Leere ziehen wählt aus. Ausgewähltes ziehen verschiebt es.':'Drag with the pen on empty space to select. Drag the selection to move it.',
+'↖ Auswahl':'↖ Select','Punkte, Griffe und Striche anfassen, ohne zu zeichnen':'Grab points, handles and strokes without drawing','Auswahl: Punkte, Griffe, Konturen und Striche antippen und ziehen. Nichts wird gezeichnet.':'Select: tap and drag points, handles, contours and strokes. Nothing gets drawn.','Punkte reduzieren':'Reduce points','Weniger Punkte geht nicht, ohne die Form zu verändern.':'Fewer points are not possible without changing the shape.','Kontur':'contour','Konturen':'contours',
 'Handschrift: Bei einem Buchstaben unter „Varianten“ legt „+ Wechsel-Variante“ e.r1 an (dann e.r2 …). Im Text wechseln sich die Formen automatisch ab, so sieht ee nie gleich aus. „+ Kontext-Variante“ legt H.ctx1 an: Du trägst ein, vor oder nach welchen Buchstaben sie kommt (z. B. H vor a). „+ Ligatur“ macht aus zwei Buchstaben eine Verbindung, die im Text automatisch erscheint.':'Handwriting: on a letter, under “Variants”, “+ Alternating variant” creates e.r1 (then e.r2 …). In text the forms alternate automatically, so ee never looks the same. “+ Context variant” creates H.ctx1: enter before or after which letters it appears (e.g. H before a). “+ Ligature” turns two letters into one connected glyph that appears automatically in text.',
 '+ Wechsel-Variante':'+ Alternating variant','+ Kontext-Variante':'+ Context variant','Nur vor':'Only before','Nur nach':'Only after','z. B. aeo':'e.g. aeo','z. B. T':'e.g. T',
 'In Bézier':'To Bézier','Alle in Bézier':'All to Bézier','Zu klein für Kurven.':'Too small for curves.','Strich ist jetzt eine Kontur mit Punkten und Griffen.':'The stroke is now an outline with points and handles.',
@@ -353,7 +356,7 @@ const I18R=[
 [/^(\d+) Konturen\. Tippe auf eine Kontur, um Punkte und Griffe zu bearbeiten\.$/,'$1 outlines. Tap an outline to edit points and handles.'],
 [/^Monospace ist an: Alle Zeichen haben (\d+) Breite, Kerning wirkt nicht\. Links\/rechts verschiebt das Zeichen in seiner Zelle\.$/,'Monospace is on: every character is $1 wide, kerning has no effect. Left/right moves the character inside its cell.'],
 [/^(\d+) Zeichen in „(.+)“\.$/,'$1 characters in “$2”.'],[/^([^·]+) · (\d+(?:\/\d+)?)$/,(m,a,b)=>tr(a)+' · '+b],
-[/^\+ Ligatur (.+)$/,'+ Ligature $1'],[/^Von (\d+) auf (\d+) Punkte\. Nochmal tippen reduziert stärker\.$/,'From $1 to $2 points. Tap again to reduce more.'],[/^(\d+) (Kontur|Konturen) · (\d+) Punkte$/,(m,a,b,c)=>a+' '+(b==='Kontur'?'contour':'contours')+' · '+c+' points'],[/^Wechsel-Variante (\d)$/,'Alternating variant $1'],
+[/^\+ Ligatur (.+)$/,'+ Ligature $1'],[/^(\d+) Formen mit (\d+) Punkten → (\d+) Formen mit (\d+) Punkten\. Nochmal tippen vereinfacht stärker, Rückgängig holt alles zurück\.$/,'$1 shapes with $2 points → $3 shapes with $4 points. Tap again to simplify more, Undo brings everything back.'],[/^(\d+) (Strich|Striche) ausgewählt$/,(m,a,b)=>a+' '+(b==='Strich'?'stroke':'strokes')+' selected'],[/^Von (\d+) auf (\d+) Punkte\. Nochmal tippen reduziert stärker\.$/,'From $1 to $2 points. Tap again to reduce more.'],[/^(\d+) (Kontur|Konturen) · (\d+) Punkte$/,(m,a,b,c)=>a+' '+(b==='Kontur'?'contour':'contours')+' · '+c+' points'],[/^Wechsel-Variante (\d)$/,'Alternating variant $1'],
 [/^Kommt im Text automatisch abwechselnd mit (.+), z\. B\. im zweiten (.+) von (.+)\. Sichtbar im Probetext\.$/,'Alternates automatically with $1 in text, e.g. the second $2 in $3. Visible in Test text.'],
 [/^Leer = nur über Feature (.+)\. Mit Buchstaben ersetzt (.+) sich automatisch, z\. B\. (.+) vor a\.$/,'Empty = only via feature $1. With letters, $2 replaces itself automatically, e.g. $3 before a.'],
 [/^(.+) angelegt, als Kopie\. Verändere sie leicht, dann wechseln sich die Formen im Text ab\.$/,'$1 created as a copy. Change it slightly and the forms alternate in text.'],
@@ -486,8 +489,10 @@ function glyphCs(g){const o=orient(g.c);if(g.k)for(const st of g.k)o.push(...str
 /* ---------- pen strokes -> editable Bézier outlines ----------
    The stroke outlines are filled on a small offscreen canvas (overlaps merge), the edge is traced,
    smoothed and thinned out, sharp turns stay corners and the rest get round handles. */
-function strokesToBez(sts){const cs=[];for(const st of sts)cs.push(...strokeCs(st));if(!cs.length)return [];
-  const b=bounds(cs),res=2,pad=3,W=Math.ceil((b.x1-b.x0)/res)+pad*2,H=Math.ceil((b.y1-b.y0)/res)+pad*2;
+function strokesToBez(sts){const cs=[];for(const st of sts)cs.push(...strokeCs(st));return outlinesToBez(cs,3.2,3)}
+/* merges outlines (overlaps become one shape) and fits them with few cubic segments */
+function outlinesToBez(cs,err,smooth,res=2,forced=[]){if(!cs.length)return [];
+  const b=bounds(cs),pad=3,W=Math.ceil((b.x1-b.x0)/res)+pad*2,H=Math.ceil((b.y1-b.y0)/res)+pad*2;
   if(W>3000||H>3000)return [];
   const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');
   x.setTransform(1/res,0,0,-1/res,-b.x0/res+pad,b.y1/res+pad);x.fillStyle='#000';x.fill(pathOf(cs),'nonzero');
@@ -506,8 +511,8 @@ function strokesToBez(sts){const cs=[];for(const st of sts)cs.push(...strokeCs(s
   const toF=q=>[(q[0]-pad)*res+b.x0,b.y1-(q[1]-pad)*res];
   const res2=[],R=v=>Math.round(v*10)/10,nrm=(x,y)=>{const l=Math.hypot(x,y)||1;return [x/l,y/l]};
   for(let p of loops){
-    for(let r=0;r<3;r++)p=p.map((q,i)=>{const a=p[(i-1+p.length)%p.length],c=p[(i+1)%p.length];return [(a[0]+2*q[0]+c[0])/4,(a[1]+2*q[1]+c[1])/4]});
-    p=p.map(toF);if(p.length<8||Math.abs(area(p))<res*res*6)continue;const c=fitLoop(p,res,res*1.6);if(c)res2.push(c)}
+    for(let r=0;r<smooth;r++)p=p.map((q,i)=>{const a=p[(i-1+p.length)%p.length],c=p[(i+1)%p.length];return [(a[0]+2*q[0]+c[0])/4,(a[1]+2*q[1]+c[1])/4]});
+    p=p.map(toF);if(p.length<8||Math.abs(area(p))<res*res*6)continue;const c=fitLoop(p,res,err,forced);if(c)res2.push(c)}
   return res2}
 /* Schneider-style least-squares cubic fit of a run of points; splits where the error is largest */
 function fitRun(pts,t1,t2,err,out,cs){const n=pts.length,dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
@@ -536,11 +541,15 @@ function fitRun(pts,t1,t2,err,out,cs){const n=pts.length,dist=(a,b)=>Math.hypot(
     const r=den?t-num/den:t;return Math.max(0,Math.min(1,r))};
   go(0,n-1,t1,t2,cs)}
 /* fits a closed dense outline (font units) with few cubic segments; sharp turns stay corners */
-function fitLoop(p,res,err){const n=p.length;const R=v=>Math.round(v*10)/10,nrm=(x,y)=>{const l=Math.hypot(x,y)||1;return [x/l,y/l]};
+function fitLoop(p,res,err,forced=[]){p=p.slice();const n=p.length;const R=v=>Math.round(v*10)/10,nrm=(x,y)=>{const l=Math.hypot(x,y)||1;return [x/l,y/l]};
     /* corners: sharp turns of the thinned-out outline */
     const kv=rdpLoop(p,res*.75),corner=new Set();
     for(let i=0;i<kv.length;i++){const a=p[kv[(i-1+kv.length)%kv.length]],q=p[kv[i]],c=p[kv[(i+1)%kv.length]];
       const u=nrm(q[0]-a[0],q[1]-a[1]),v=nrm(c[0]-q[0],c[1]-q[1]);if(u[0]*v[0]+u[1]*v[1]<Math.cos(50*Math.PI/180))corner.add(kv[i])}
+    /* known corners (from the original outlines) win: exact position, and no second corner right next to them */
+    const tolF=Math.max(3,res*2.5);
+    for(const f of forced){let bi=-1,bd=tolF;for(let i=0;i<n;i++){const d=Math.hypot(p[i][0]-f[0],p[i][1]-f[1]);if(d<bd){bd=d;bi=i}}
+      if(bi<0)continue;for(const k of [...corner])if(Math.hypot(p[k][0]-p[bi][0],p[k][1]-p[bi][1])<tolF*2)corner.delete(k);p[bi]=[f[0],f[1]];corner.add(bi)}
     let cut=[...corner].sort((x,y)=>x-y);
     if(!cut.length){let lo=0,hi=0,bo=0,to=0;for(let i=1;i<n;i++){if(p[i][0]<p[lo][0])lo=i;if(p[i][0]>p[hi][0])hi=i;if(p[i][1]<p[bo][1])bo=i;if(p[i][1]>p[to][1])to=i}cut=[...new Set([lo,hi,bo,to])].sort((x,y)=>x-y)}
     const at=i=>p[((i%n)+n)%n],K=4;
@@ -548,7 +557,15 @@ function fitLoop(p,res,err){const n=p.length;const R=v=>Math.round(v*10)/10,nrm=
       const a=at(i-K),c=at(i+K);const t=nrm(c[0]-a[0],c[1]-a[1]);return dir>0?t:[-t[0],-t[1]]};
     const segsOut=[];
     for(let k=0;k<cut.length;k++){const s=cut[k],e=k+1<cut.length?cut[k+1]:cut[0]+n;const run=[];for(let i=s;i<=e;i++)run.push(at(i));
+      const A0=run[0],B0=run[run.length-1],L0=Math.hypot(B0[0]-A0[0],B0[1]-A0[1]);
+      if(L0>0&&run.every(q=>Math.abs((B0[0]-A0[0])*(q[1]-A0[1])-(B0[1]-A0[1])*(q[0]-A0[0]))/L0<Math.max(1,err*.6))){
+        const sg=[A0,[A0[0]+(B0[0]-A0[0])/3,A0[1]+(B0[1]-A0[1])/3],[A0[0]+(B0[0]-A0[0])*2/3,A0[1]+(B0[1]-A0[1])*2/3],B0];sg.c0=corner.has(s%n);sg.line=true;segsOut.push(sg);continue}
       const t1=tan(s,1),t2=tan(e,-1);fitRun(run,t1,t2,err,segsOut,corner.has(s%n))}
+    /* a corner between two straight edges sits exactly where the two lines meet */
+    for(let k=0;k<segsOut.length;k++){const a=segsOut[(k-1+segsOut.length)%segsOut.length],b=segsOut[k];if(!a.line||!b.line||!b.c0)continue;
+      const p1=a[0],p2=a[3],p3=b[0],p4=b[3],d=(p1[0]-p2[0])*(p3[1]-p4[1])-(p1[1]-p2[1])*(p3[0]-p4[0]);if(Math.abs(d)<1e-6)continue;
+      const t=((p1[0]-p3[0])*(p3[1]-p4[1])-(p1[1]-p3[1])*(p3[0]-p4[0]))/d,X=[p1[0]+t*(p2[0]-p1[0]),p1[1]+t*(p2[1]-p1[1])];
+      if(Math.hypot(X[0]-p3[0],X[1]-p3[1])<Math.max(4,err*1.5)){b[0]=X;a[3]=X}}
     const pts=segsOut.map((sg,k)=>{const pv=segsOut[(k-1+segsOut.length)%segsOut.length],sm=!sg.c0;
       const q=P(R(sg[0][0]),R(sg[0][1]),[R(pv[2][0]),R(pv[2][1])],[R(sg[1][0]),R(sg[1][1])],sm);return q});
     /* nearly straight segments: drop their handles */
@@ -560,7 +577,25 @@ function fitLoop(p,res,err){const n=p.length;const R=v=>Math.round(v*10)/10,nrm=
 function reduceC(c,err){const fl=flat(c,24);if(fl.length<6)return c;const pts=[];
   for(let i=0;i<fl.length;i++){const a=fl[i],b=fl[(i+1)%fl.length],L=Math.hypot(b[0]-a[0],b[1]-a[1]),k=Math.max(1,Math.ceil(L/2));for(let j=0;j<k;j++)pts.push([a[0]+(b[0]-a[0])*j/k,a[1]+(b[1]-a[1])*j/k])}
   const d=[];for(const q of pts){const l=d[d.length-1];if(!l||Math.hypot(q[0]-l[0],q[1]-l[1])>.5)d.push(q)}while(d.length>2&&Math.hypot(d[0][0]-d[d.length-1][0],d[0][1]-d[d.length-1][1])<.5)d.pop();
-  if(d.length<8)return c;const r=fitLoop(d,2,err);if(!r||r.p.length>=c.p.length)return c;if(c._pt)r._pt=c._pt;return r}
+  if(d.length<8)return c;const fc=c.p.filter((q,i)=>{const n=c.p.length,a=c.p[(i-1+n)%n],b=c.p[(i+1)%n];if(q.s)return false;const u=q.i?[q.x-q.i[0],q.y-q.i[1]]:[q.x-a.x,q.y-a.y],v=q.o?[q.o[0]-q.x,q.o[1]-q.y]:[b.x-q.x,b.y-q.y];const L=Math.hypot(...u)*Math.hypot(...v)||1;return (u[0]*v[0]+u[1]*v[1])/L<Math.cos(25*Math.PI/180)}).map(q=>[q.x,q.y]);const r=fitLoop(d,1,err,fc);if(!r||r.p.length>=c.p.length)return c;if(c._pt)r._pt=c._pt;return r}
+/* simplify a whole glyph: overlapping contours and strokes become as few shapes as possible, each with as few points as possible.
+   Corners snap back to the original corner points so the shape keeps its exact edges. */
+function simplifyGlyph(g,err){const own=x=>!x._pt;
+  const items=[];for(const c of orient(g.c.filter(own)))items.push({cs:[c],stroke:false});for(const st of (g.k||[]).filter(own))items.push({cs:strokeCs(st),stroke:true});
+  if(!items.length)return null;
+  const fl=items.map(it=>it.cs.map(c=>flat(c,8))),bb=items.map(it=>bounds(it.cs));
+  const segX=(a,b,c,d)=>{const o=(p,q,r)=>(q[0]-p[0])*(r[1]-p[1])-(q[1]-p[1])*(r[0]-p[0]);return o(a,b,c)*o(a,b,d)<0&&o(c,d,a)*o(c,d,b)<0};
+  const cross=(i,j)=>{if(bb[i].x1<bb[j].x0||bb[j].x1<bb[i].x0||bb[i].y1<bb[j].y0||bb[j].y1<bb[i].y0)return false;
+    for(const P of fl[i])for(const Q of fl[j])for(let a=0;a<P.length;a++){const a1=P[a],a2=P[(a+1)%P.length];for(let k=0;k<Q.length;k++)if(segX(a1,a2,Q[k],Q[(k+1)%Q.length]))return true}return false};
+  const par=items.map((_,i)=>i),find=i=>par[i]===i?i:(par[i]=find(par[i]));
+  for(let i=0;i<items.length;i++)for(let j=i+1;j<items.length;j++)if(find(i)!==find(j)&&cross(i,j))par[find(i)]=find(j);
+  const groups=new Map();items.forEach((it,i)=>{const r=find(i);if(!groups.has(r))groups.set(r,[]);groups.get(r).push(it)});
+  const out=[];
+  for(const gr of groups.values()){
+    if(gr.length===1&&!gr[0].stroke){out.push(reduceC(gr[0].cs[0],err));continue}
+    const cs=gr.flatMap(it=>it.cs),forced=[];for(const it of gr)if(!it.stroke)for(const q of it.cs[0].p)if(!q.s)forced.push([q.x,q.y]);
+    out.push(...outlinesToBez(cs,err,gr.some(it=>it.stroke)?2:0,1,forced))}
+  return out}
 function rdpLoop(p,eps){const n=p.length;let far=0,best=-1;
   for(let i=1;i<n;i++){const dd=Math.hypot(p[i][0]-p[0][0],p[i][1]-p[0][1]);if(dd>best){best=dd;far=i}}
   const rdp=(s,e,o)=>{let mx=-1,mi=-1;const A=p[s],B=p[e%n],dx=B[0]-A[0],dy=B[1]-A[1],L=Math.hypot(dx,dy)||1;
@@ -1245,6 +1280,10 @@ function draw(){
   const g=curGlyph(false);
   if(g&&!preview&&tool!=='kern')drawPoints(g);
   if(drag&&drag.kind==='shape'&&drag.shape)strokeGlyph([drag.shape],gx(),C.accent,1.5);
+  if(drag&&drag.kind==='marq'&&drag.pts.length>1){const P0=drag.pts,o=gx();ctx.save();ctx.strokeStyle=C.accent;ctx.setLineDash([5,4]);ctx.lineWidth=1.5;ctx.beginPath();
+    if(selMode==='l'){P0.forEach((q,i)=>i?ctx.lineTo(sx(q[0]+o),sy(q[1])):ctx.moveTo(sx(q[0]+o),sy(q[1])));ctx.closePath()}else{const a=P0[0],b=P0[P0.length-1];ctx.rect(sx(Math.min(a[0],b[0])+o),sy(Math.max(a[1],b[1])),Math.abs(sx(b[0])-sx(a[0])),Math.abs(sy(b[1])-sy(a[1])))}
+    ctx.stroke();ctx.fillStyle=C.accent;ctx.globalAlpha=.08;ctx.fill();ctx.restore()}
+  if(selK.size&&curGlyph(false)){ctx.save();ctx.globalAlpha=.55;for(const st of selK)if((curGlyph(false).k||[]).includes(st))fillGlyph(strokeCs(st),gx(),C.accent);ctx.restore()}
   if(selStroke&&curGlyph(false)&&(curGlyph(false).k||[]).includes(selStroke)){ctx.save();ctx.globalAlpha=.55;fillGlyph(strokeCs(selStroke),gx(),C.accent);ctx.restore()}
   if(drag&&drag.kind==='brush'&&drag.st.p.length){SC.delete(drag.st);fillGlyph(strokeCs(drag.st),gx(),INK)}
   const it=curItem();
@@ -1361,7 +1400,7 @@ cv.addEventListener('pointerup',lift);cv.addEventListener('pointercancel',lift);
 cv.addEventListener('wheel',e=>{e.preventDefault();if(e.ctrlKey||e.metaKey){const f=Math.exp(-e.deltaY*.01);const s=Math.max(.03,Math.min(4,view.s*f));
   view.ox=e.offsetX-(e.offsetX-view.ox)*s/view.s;view.oy=e.offsetY-(e.offsetY-view.oy)*s/view.s;view.s=s}else{view.ox-=e.deltaX;view.oy-=e.deltaY}draw()},{passive:false});
 
-function activate(i){if(i===active)return;partEditEnd();active=i;sel.clear();selStroke=null;selPart=null;openC=null;pickedPair=null;draw();renderInsp()}
+function activate(i){if(i===active)return;partEditEnd();active=i;sel.clear();selK.clear();selStroke=null;selPart=null;openC=null;pickedPair=null;draw();renderInsp()}
 let nib={n:'pointed',s:90,a:35,tilt:false};try{Object.assign(nib,JSON.parse(localStorage.getItem('glyphwerk.nib')||'{}'))}catch(e){}
 function saveNib(){try{localStorage.setItem('glyphwerk.nib',JSON.stringify(nib))}catch(e){}}
 function addSample(st,e){
@@ -1383,17 +1422,19 @@ function down(px,py,id,ev,selPtr){
     const h=g&&hitPoint(g,px,py);
     if(h){pushUndo();frozen=true;
       if(h.type==='h'){drag={kind:'handle',id,h}}
-      else{if(!sel.has(h.q)){sel.clear();sel.add(h.q)}drag={kind:'move',id,lx:x,ly:y,moved:false}}
+      else{if(!sel.has(h.q)){sel.clear();selK.clear();sel.add(h.q)}drag={kind:'move',id,lx:x,ly:y,moved:false}}
       renderInsp();draw();return}
     const sh=g&&hitStroke(g,px,py);
-    if(sh){pushUndo();frozen=true;sel.clear();selPart=null;selStroke=sh;drag={kind:'moveStroke',id,lx:x,ly:y,moved:false};renderInsp();draw();return}
+    if(sh&&selK.has(sh)){pushUndo();frozen=true;drag={kind:'move',id,lx:x,ly:y,moved:false};return}
+    if(sh){pushUndo();frozen=true;sel.clear();selK.clear();selPart=null;selStroke=sh;drag={kind:'moveStroke',id,lx:x,ly:y,moved:false};renderInsp();draw();return}
     const c=g&&hitContour(g,px,py);
-    if(c){pushUndo();frozen=true;selStroke=null;selPart=null;sel=new Set(c.p);drag={kind:'move',id,lx:x,ly:y};renderInsp();draw();return}
+    if(c){pushUndo();frozen=true;selStroke=null;selPart=null;selK.clear();sel=new Set(c.p);drag={kind:'move',id,lx:x,ly:y};renderInsp();draw();return}
     const hu=hitPart(g,px,py);
     if(hu){pushUndo();frozen=true;sel.clear();selStroke=null;selPart=hu;drag={kind:'movePart',id,lx:x,ly:y,moved:false};renderInsp();draw();return}
+    if(tool==='select'&&!selPtr&&g&&!blank(curCh())){sel.clear();selK.clear();selStroke=null;selPart=null;drag={kind:'marq',id,pts:[[x,y]]};renderInsp();draw();return}
     const h2=itemAt(px,py);if(h2.ln&&h2.inBand){caret=h2.c;syncEdSel()}
     if(h2.i>=0&&h2.i!==active&&h2.inBand){activate(h2.i);if(!blank(curCh())){caret=h2.i+1;syncEdSel()}drag={kind:'pan',x:px,y:py,v:{...view},id};return}
-    if(sel.size||selStroke||selPart){sel.clear();selStroke=null;selPart=null;renderInsp();draw()}
+    if(sel.size||selStroke||selPart||selK.size){sel.clear();selK.clear();selStroke=null;selPart=null;renderInsp();draw()}
     drag={kind:'pan',x:px,y:py,v:{...view},id};return}
   if(T==='pen'){
     if(blank(curCh()))return;
@@ -1415,8 +1456,9 @@ function move(px,py,ev){
   if(drag.kind==='kern'){const upp=Math.max(.5,Math.min(2,.35/(view.s*(drag.k||1))));const v=Math.round((drag.start+(px-drag.x)*upp)/5)*5;
     if(drag.lvl==='s'){const g=sbGlyph(drag.sb);if(g.l===v)return;g.l=v;g.v=(g.v||0)+1}else if(drag.lvl==='g'){(S.gkern||(S.gkern={}))[drag.key]=v}else S.kern[drag.key]=v;
     relayout();draw();renderInsp();return}
+  if(drag.kind==='marq'){const l=drag.pts[drag.pts.length-1];if(Math.hypot(x-l[0],y-l[1])*view.s*A.k>3)drag.pts.push([x,y]);draw();return}
   if(drag.kind==='move'){const nx=snapV(x),ny=snapV(y),ox=snapV(drag.lx),oy=snapV(drag.ly);const dx=nx-ox,dy=ny-oy;if(!dx&&!dy)return;
-    for(const q of sel){q.x+=dx;q.y+=dy;if(q.i){q.i[0]+=dx;q.i[1]+=dy}if(q.o){q.o[0]+=dx;q.o[1]+=dy}}drag.lx+=dx;drag.ly+=dy;drag.moved=true;draw();return}
+    for(const q of sel){q.x+=dx;q.y+=dy;if(q.i){q.i[0]+=dx;q.i[1]+=dy}if(q.o){q.o[0]+=dx;q.o[1]+=dy}}for(const st of selK){for(let i=0;i<st.p.length;i+=4){st.p[i]=Math.round((st.p[i]+dx)*10)/10;st.p[i+1]=Math.round((st.p[i+1]+dy)*10)/10}SC.delete(st)}if(selK.size)MC.delete(curCh());drag.lx+=dx;drag.ly+=dy;drag.moved=true;draw();return}
   if(drag.kind==='handle'){const {q,k}=drag.h;const nx=Math.round(x),ny=Math.round(y);q[k]=[nx,ny];
     const ok=k==='i'?'o':'i';if(q.s&&q[ok]){const len=Math.hypot(q[ok][0]-q.x,q[ok][1]-q.y),dl=Math.hypot(nx-q.x,ny-q.y)||1;q[ok]=[q.x-(nx-q.x)/dl*len,q.y-(ny-q.y)/dl*len]}draw();return}
   if(drag.kind==='handlePull'){const q=drag.q;const dx=x-q.x,dy=y-q.y;if(Math.hypot(dx,dy)*view.s*A.k<8)return;
@@ -1428,12 +1470,17 @@ function endDrag(cancel){
   if(!drag)return;const d=drag;drag=null;frozen=false;
   if(cancel){relayout();draw();return}
   if(d.kind==='pan')return;
+  if(d.kind==='marq'){const g=curGlyph(false),pts=d.pts;if(g&&pts.length>1){let inside;
+      if(selMode==='l'&&pts.length>2)inside=q=>inPoly(q,pts);else{const x0=Math.min(pts[0][0],pts[pts.length-1][0]),x1=Math.max(pts[0][0],pts[pts.length-1][0]),y0=Math.min(pts[0][1],pts[pts.length-1][1]),y1=Math.max(pts[0][1],pts[pts.length-1][1]);inside=q=>q[0]>=x0&&q[0]<=x1&&q[1]>=y0&&q[1]<=y1}
+      for(const c of g.c)for(const q of c.p)if(inside([q.x,q.y]))sel.add(q);
+      for(const st of g.k||[]){let n=0,m=0;for(let i=0;i<st.p.length;i+=4){m++;if(inside([st.p[i],st.p[i+1]]))n++}if(m&&n>=m*.8)selK.add(st)}}
+    renderInsp();draw();return}
   if(d.kind==='moveStroke'&&!d.moved){undoS.pop();updButtons();draw();return}
   if(d.kind==='movePart'){if(!d.moved){undoS.pop();updButtons();draw()}else changed(curCh());return}
   if(d.kind==='kern'){if(d.lvl==='s'){dirty.add('meta');changed(d.sb)}else changed(null);return}
   if(d.kind==='brush'){if(d.st.p.length){SC.delete(d.st);const G=curGlyph(true);if(editPart&&editPart.ch===curCh())d.st._pt=editPart.u.id;(G.k||(G.k=[])).push(d.st);changed(curCh())}else{undoS.pop();updButtons();draw()}return}
   if(d.kind==='shape'){if(d.shape){const G=curGlyph(true);if(editPart&&editPart.ch===curCh())d.shape._pt=editPart.u.id;G.c.push(d.shape);sel=new Set(d.shape.p);changed(curCh())}else{undoS.pop();updButtons();draw()}return}
-  if(d.kind==='move'&&d.moved===false&&tool==='select'){draw();renderInsp();undoS.pop();updButtons();return}
+  if(d.kind==='move'&&d.moved===false&&tool==='select'&&!selK.size){draw();renderInsp();undoS.pop();updButtons();return}
   changed(curCh())}
 
 /* ---------- inspector ---------- */
@@ -1446,6 +1493,8 @@ let toastUntil=0,toastTxt='';function toast(t){toastTxt=t;toastUntil=Date.now()+
 function renderInsp(){
   const parts=[];const ch=curCh();const it=curItem();
   if(tool==='brush'&&(nib.n==='broad'||nib.ov))parts.push(`<div class="blk"><span class="lbl">Neigung</span><span class="num">${nib.tilt?'vom Pencil':nib.a+'°'}</span><button class="solid" data-act="tilt" aria-pressed="${nib.tilt}">Neigung vom Pencil nehmen</button></div>`);
+  if(tool==='select')parts.push(`<div class="blk"><span class="lbl">Auswahl</span><span class="seg">${btn('sm-r','▭ Rechteck','aria-pressed="'+(selMode==='r')+'"')}${btn('sm-l','Lasso','aria-pressed="'+(selMode==='l')+'"')}</span><span class="note">Mit dem Stift ins Leere ziehen wählt aus. Ausgewähltes ziehen verschiebt es.</span></div>`);
+  if(selK.size&&tool!=='kern')parts.push(`<div class="blk"><span class="lbl">${selK.size} ${selK.size===1?'Strich':'Striche'} ausgewählt</span>${btn('kselbez','In Bézier')}${btn('kseldel','Löschen')}</div>`);
   if(tool==='kern'){const L=kLevel,pp=pickedPair;
     if(S.mono)parts.push(`<span class="note">Monospace ist an: Alle Zeichen haben ${S.mono} Breite, Kerning wirkt nicht. Links/rechts verschiebt das Zeichen in seiner Zelle.</span>`);
     parts.push(`<div class="blk"><span class="lbl">Ebene</span><span class="seg">${btn('kl-s','1 Abstand','aria-pressed="'+(L==='s')+'"')}${btn('kl-g','2 Gruppe','aria-pressed="'+(L==='g')+'"')}${btn('kl-p','3 Paar','aria-pressed="'+(L==='p')+'"')}</span></div>`);
@@ -1471,7 +1520,7 @@ function renderInsp(){
       parts.push(`<div class="blk"><span class="lbl">Strich · ${esc(NIBS[selStroke.n]||'')}</span>${btn('sdel','Löschen')}${btn('sdup','Duplizieren')}${btn('sbez','In Bézier')}${selStroke._pt||selStroke.n==='gen'?'':sims.length?btn('pmks','Mit '+chs([...new Set(sims.map(x=>x.ch))])+' verknüpfen'):btn('pmk','Als Bauteil')}</div>`)}
     else if(selPart){const P=S.parts[selPart.id]||{},us=partUsers(selPart.id);const P0=P.k&&P.k[0];const more=P0?similarStrokes(ch,{...P0,p:P0.p.map((v,i)=>i%4===0?v+(selPart.dx||0):i%4===1?v+(selPart.dy||0):v)}):[];
       parts.push(`<div class="blk"><span class="lbl">${esc(P.name||'Bauteil')} · in ${chs(us)}</span>${btn('pmv-l','←')}${btn('pmv-r','→')}${btn('pmv-u','↑')}${btn('pmv-d','↓')}${btn('ped','Form bearbeiten')}${btn('pdet','Lösen')}${btn('pdel','Entfernen')}${more.length?btn('plink','Auch '+chs([...new Set(more.map(x=>x.ch))])+' verknüpfen'):''}</div>`)}
-    else if(nk)parts.push(`<div class="blk"><span class="lbl">${nk} ${nk===1?'Strich':'Striche'}</span>${btn('klast','Letzten weg')}${btn('kall','Alle weg')}${btn('kbez','Alle in Bézier')}</div>`);
+    else if(nk)parts.push(`<div class="blk"><span class="lbl">${nk} ${nk===1?'Strich':'Striche'}</span>${btn('klast','Letzten weg')}${btn('kall','Alle weg')}${btn('kbez','Alle in Bézier')}${btn('simp','Vereinfachen')}</div>`);
     if(sel.size===1){const q=[...sel][0];
       parts.push(`<div class="blk"><span class="lbl">Punkt</span><span class="num">${Math.round(q.x)}</span><span class="num">${Math.round(q.y)}</span>
       ${btn('nl','←')}${btn('nr','→')}${btn('nu','↑')}${btn('nd','↓')}${btn('smooth',q.s?'Ecke':'Kurve')}${btn('straight','Griffe weg')}${btn('del','Löschen')}</div>`)}
@@ -1480,7 +1529,7 @@ function renderInsp(){
       if(sug.length)parts.push(`<div class="blk"><span class="lbl">Gleiche Striche</span>${sug.join('')}</div>`);
       const ids=Object.keys(S.parts||{}).filter(id=>partUsers(id).length&&!(gk.u||[]).some(u=>u.id===id));
       if(ids.length)parts.push(`<div class="blk"><span class="lbl">Bauteil einsetzen</span><select class="sel" data-pins="1"><option value="">wählen…</option>${ids.map(id=>`<option value="${id}">${esc(S.parts[id].name)} (${chs(partUsers(id))})</option>`).join('')}</select></div>`)}
-    if(!sel.size&&!selStroke&&!selPart&&!openC&&gk&&gk.c&&gk.c.length){const np=gk.c.reduce((a,c)=>a+c.p.length,0);parts.push(`<div class="blk"><span class="lbl">${gk.c.length} ${gk.c.length===1?'Kontur':'Konturen'} · ${np} Punkte</span>${btn('redall','Punkte reduzieren')}</div>`)}
+    if(!sel.size&&!selStroke&&!selPart&&!openC&&!nk&&gk&&gk.c&&gk.c.length){const np=gk.c.reduce((a,c)=>a+c.p.length,0);parts.push(`<div class="blk"><span class="lbl">${gk.c.length} ${gk.c.length===1?'Kontur':'Konturen'} · ${np} Punkte</span>${btn('simp','Vereinfachen')}</div>`)}
     if(openC)parts.push(`<div class="blk">${btn('close','Kontur schließen')}${btn('endopen','Fertig')}</div>`);
     if(clip&&ch&&ch!==' ')parts.push(`<div class="blk">${btn('paste','Einfügen')}</div>`);
     {const nm=ch&&nameOf(ch);
@@ -1519,10 +1568,16 @@ insp.addEventListener('change',e=>{const t=e.target;if(t.dataset&&t.dataset.ctx)
 insp.addEventListener('input',e=>{
   if(e.target.id==='nibA'){nib.a=+e.target.value;e.target.nextElementSibling.textContent=nib.a+'°';saveNib()}});
 insp.addEventListener('click',e=>{const b=e.target.closest('button[data-act]');if(!b)return;const a=b.dataset.act;const ch=curCh();const g=curGlyph(false);
+  if(a==='simp'&&g&&(g.c.length||(g.k||[]).length)){pushUndo();const lv=(g._sl||0)+1;const err=[2.5,4,6,9][Math.min(lv,4)-1];
+    const n0=g.c.filter(c=>!c._pt).length+(g.k||[]).filter(st=>!st._pt).length,p0=g.c.filter(c=>!c._pt).reduce((x,c)=>x+c.p.length,0);
+    const out=simplifyGlyph(g,err);if(!out){undoS.pop();updButtons();return}g.c=[...g.c.filter(c=>c._pt),...out];g.k=(g.k||[]).filter(st=>st._pt);g._sl=lv;sel.clear();selK.clear();selStroke=null;
+    const p1=out.reduce((x,c)=>x+c.p.length,0);toast(`${n0} Formen mit ${p0} Punkten → ${out.length} Formen mit ${p1} Punkten. Nochmal tippen vereinfacht stärker, Rückgängig holt alles zurück.`);return changed(ch)}
   if((a==='red'||a==='redall')&&g&&g.c.length){pushUndo();const lv=(g._rl||0)+1;g._rl=lv;const err=Math.min(2+lv*2,10);
     const tgt=a==='red'?g.c.filter(c=>c.p.some(q=>sel.has(q))):g.c.slice();const n0=tgt.reduce((x,c)=>x+c.p.length,0);
     const nc=tgt.map(c=>c.z===false?c:reduceC(c,err));g.c=g.c.map(c=>{const i=tgt.indexOf(c);return i<0?c:nc[i]});const n1=nc.reduce((x,c)=>x+c.p.length,0);
     if(a==='red')sel=new Set(nc.flatMap(c=>c.p));toast(n1<n0?`Von ${n0} auf ${n1} Punkte. Nochmal tippen reduziert stärker.`:'Weniger Punkte geht nicht, ohne die Form zu verändern.');return changed(ch)}
+  if(a==='sm-r'||a==='sm-l'){selMode=a.slice(3);try{localStorage.setItem('glyphwerk.selmode',selMode)}catch(e){}renderInsp();return}
+  if((a==='kselbez'||a==='kseldel')&&g&&selK.size){pushUndo();const L=[...selK].filter(st=>(g.k||[]).includes(st));selK.clear();if(a==='kseldel')g.k=g.k.filter(st=>!L.includes(st));else bezStrokes(ch,L);return changed(ch)}
   if(a==='mklig'){const t=[...S.text],nx=t[active+1];const A=gm(ch),B=gm(nx);if(!A||!B)return;const n=`${ch}_${nx}.liga`,c=newName(n);
     if(!S.glyphs[c]||!hasInk(S.glyphs[c])){const k=kernOf(ch,nx),off=A.adv+k-A.dx+B.dx;S.glyphs[c]={c:[...A.cs.map(q=>shiftC(q,0,0)),...B.cs.map(q=>shiftC(q,off,0))],k:[],l:0,r:0,v:1}}
     t.splice(active,2,c);S.text=t.join('');txt.value=textToShow(S.text);dirty.add('g:'+c);changed(null);activate(active);
