@@ -93,6 +93,7 @@ body.clean .cleanbar{display:flex}
 .cell.empty canvas{opacity:.35}
 .gsec{grid-column:1/-1;margin:10px 0 0;font-size:13px;color:var(--muted)}
 .chip{display:inline-flex;gap:2px}
+.ctxin{width:7em;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
 .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:10px 0}
 .row label{min-width:9em;color:var(--muted);font-size:14px}
 .row input[type=text]{flex:1;min-width:0;font:15px var(--f-ui);padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
@@ -188,6 +189,7 @@ body.clean .cleanbar{display:flex}
 <div class="sheet" id="sheetFea" hidden><div>
   <h2>OpenType-Features <button class="solid" data-close>Schließen</button></h2>
   <p class="note">Wie in Glyphs entstehen viele Features aus dem Namen. Tippe im Textfeld <b>/a.ss01</b> und ein Leerzeichen, dann zeichnest du diese Variante direkt in der Zeile. <b>.ss01</b> bis <b>.ss20</b> werden Stilsets, <b>.sc</b> Kapitälchen, <b>.alt</b> Alternativen, <b>.onum</b> Mediävalziffern, <b>f_i</b> eine Ligatur.</p>
+  <p class="note">Handschrift: Bei einem Buchstaben unter „Varianten“ legt „+ Wechsel-Variante“ e.r1 an (dann e.r2 …). Im Text wechseln sich die Formen automatisch ab, so sieht ee nie gleich aus. „+ Kontext-Variante“ legt H.ctx1 an: Du trägst ein, vor oder nach welchen Buchstaben sie kommt (z. B. H vor a). „+ Ligatur“ macht aus zwei Buchstaben eine Verbindung, die im Text automatisch erscheint.</p>
   <div class="ai">
     <label for="feaAsk">Was soll passieren?</label>
     <textarea id="feaAsk" rows="2" placeholder="z. B. Am Wortende soll ein anderes g stehen"></textarea>
@@ -270,7 +272,9 @@ let active=0;          // index in text
 let tool='brush',inv=false,mouseSel=false,selStroke=null;try{inv=localStorage.getItem('glyphwerk.inv')==='1'}catch(e){}
 let LANG='de';try{LANG=localStorage.getItem('glyphwerk.lang')||((navigator.language||'de').toLowerCase().startsWith('de')?'de':'en')}catch(e){LANG=(navigator.language||'de').toLowerCase().startsWith('de')?'de':'en'}
 /* ---------- language: UI is written in German; English comes from this table (exact strings) and the patterns below ---------- */
-const I18N={'In Bézier':'To Bézier','Alle in Bézier':'All to Bézier','Zu klein für Kurven.':'Too small for curves.','Strich ist jetzt eine Kontur mit Punkten und Griffen.':'The stroke is now an outline with points and handles.',
+const I18N={'Handschrift: Bei einem Buchstaben unter „Varianten“ legt „+ Wechsel-Variante“ e.r1 an (dann e.r2 …). Im Text wechseln sich die Formen automatisch ab, so sieht ee nie gleich aus. „+ Kontext-Variante“ legt H.ctx1 an: Du trägst ein, vor oder nach welchen Buchstaben sie kommt (z. B. H vor a). „+ Ligatur“ macht aus zwei Buchstaben eine Verbindung, die im Text automatisch erscheint.':'Handwriting: on a letter, under “Variants”, “+ Alternating variant” creates e.r1 (then e.r2 …). In text the forms alternate automatically, so ee never looks the same. “+ Context variant” creates H.ctx1: enter before or after which letters it appears (e.g. H before a). “+ Ligature” turns two letters into one connected glyph that appears automatically in text.',
+'+ Wechsel-Variante':'+ Alternating variant','+ Kontext-Variante':'+ Context variant','Nur vor':'Only before','Nur nach':'Only after','z. B. aeo':'e.g. aeo','z. B. T':'e.g. T',
+'In Bézier':'To Bézier','Alle in Bézier':'All to Bézier','Zu klein für Kurven.':'Too small for curves.','Strich ist jetzt eine Kontur mit Punkten und Griffen.':'The stroke is now an outline with points and handles.',
 'Breiter als die Monospace-Breite':'Wider than the monospace width','Monospace':'Monospace',
 'Monospace: Jedes Zeichen bekommt dieselbe Breite und steht mittig in seiner Zelle, wie bei Code-Schriften. Kerning ist dann aus. Zu breite Zeichen werden rot umrandet.':'Monospace: every character gets the same width and sits centred in its cell, like in code fonts. Kerning is off then. Characters that are too wide get a red frame.',
 'Tippe einen Buchstaben an, um ihn im Text zu bearbeiten. Blasse Felder sind noch nicht gezeichnet. Akzente und Kyrillisch/Griechisch, das wie Latein aussieht, entstehen automatisch aus deinen Buchstaben.':'Tap a letter to edit it in the text. Faint cells are not drawn yet. Accents, and Cyrillic/Greek letters that look like Latin ones, are built automatically from your letters.',
@@ -346,7 +350,13 @@ const I18R=[
 [/^Vorlage: (.+)$/,'Template: $1'],[/^Breite (\d+)$/,'Width $1'],
 [/^(\d+) Konturen\. Tippe auf eine Kontur, um Punkte und Griffe zu bearbeiten\.$/,'$1 outlines. Tap an outline to edit points and handles.'],
 [/^Monospace ist an: Alle Zeichen haben (\d+) Breite, Kerning wirkt nicht\. Links\/rechts verschiebt das Zeichen in seiner Zelle\.$/,'Monospace is on: every character is $1 wide, kerning has no effect. Left/right moves the character inside its cell.'],
-[/^(\d+) Zeichen in „(.+)“\.$/,'$1 characters in “$2”.'],[/^([^·]+) · (\d+(?:\/\d+)?)$/,(m,a,b)=>tr(a)+' · '+b]];
+[/^(\d+) Zeichen in „(.+)“\.$/,'$1 characters in “$2”.'],[/^([^·]+) · (\d+(?:\/\d+)?)$/,(m,a,b)=>tr(a)+' · '+b],
+[/^\+ Ligatur (.+)$/,'+ Ligature $1'],[/^Wechsel-Variante (\d)$/,'Alternating variant $1'],
+[/^Kommt im Text automatisch abwechselnd mit (.+), z\. B\. im zweiten (.+) von (.+)\. Sichtbar im Probetext\.$/,'Alternates automatically with $1 in text, e.g. the second $2 in $3. Visible in Test text.'],
+[/^Leer = nur über Feature (.+)\. Mit Buchstaben ersetzt (.+) sich automatisch, z\. B\. (.+) vor a\.$/,'Empty = only via feature $1. With letters, $2 replaces itself automatically, e.g. $3 before a.'],
+[/^(.+) angelegt, als Kopie\. Verändere sie leicht, dann wechseln sich die Formen im Text ab\.$/,'$1 created as a copy. Change it slightly and the forms alternate in text.'],
+[/^(.+) angelegt\. Trag ein, vor oder nach welchen Buchstaben sie kommt\.$/,'$1 created. Enter before or after which letters it appears.'],
+[/^Ligatur (.+) angelegt, aus beiden Buchstaben zusammengesetzt\. Zeichne die Verbindung, im Text ersetzt sie (.+) automatisch\.$/,'Ligature $1 created from both letters. Draw the connection, in text it replaces $2 automatically.']];
 function tr(s){if(LANG!=='en'||!s)return s;const t=s.trim();if(!t)return s;let r=I18N[t];
   if(r==null)for(const [re,to] of I18R){if(re.test(t)){r=t.replace(re,to);break}}
   return r==null?s:s.replace(t,r)}
@@ -988,7 +998,18 @@ function autoFea(){const F={},add=(t,l)=>(F[t]=F[t]||[]).push(l);
       add(suf.includes('dlig')?'dlig':suf.includes('liga')||comps[0]==='f'?'liga':'dlig',`sub ${comps.join(' ')} by ${n};`);continue}
     if(!suf.length)continue;const last=suf[suf.length-1],src=[base,...suf.slice(0,-1)].join('.');if(!glyphExists(src))continue;
     const tag=/^(ss(0[1-9]|1\d|20)|cv\d\d)$/.test(last)?last:FEAT_SUF[last];if(tag)add(tag,`sub ${src} by ${n};`)}
-  return Object.keys(F).sort().map(t=>`feature ${t} {\n  ${F[t].join('\n  ')}\n} ${t};`).join('\n\n')}
+  const cl=[];
+  /* context variants: a named variant (H.ctx1, a.ss01 …) used only before/after chosen letters */
+  for(const [n,cx] of Object.entries(S.ctx||{})){if(!glyphExists(n))continue;const base=n.split('.')[0];if(!glyphExists(base))continue;
+    const ok=t=>[...new Set([...(t||'')].filter(c=>/\p{L}/u.test(c)&&glyphExists(c)))].join(' ');const p=ok(cx.p),nx=ok(cx.n);if(!p&&!nx)continue;
+    add('calt',`sub ${p?'['+p+'] ':''}${base}' ${nx?'['+nx+'] ':''}by ${n};`)}
+  /* alternating variants (.r1, .r2 …): in a row of letters each one follows the previous one's form one step further,
+     so doubled letters (ee, aa, ll) never look identical. */
+  const L=allChars().filter(c=>/\p{L}/u.test(c)&&!nameOf(c)&&glyphExists(c));const lv=[];
+  for(let k=1;k<=9;k++){const b=L.filter(c=>glyphExists(c+'.r'+k));if(!b.length)break;lv.push(b)}
+  if(lv.length){const other=Object.keys(S.names||{}).filter(n=>!/\.r\d$/.test(n)&&/^[\w.]+$/.test(n)&&glyphExists(n));cl.push(`@GW_R0 = [${[...L,...other].join(' ')}];`);lv.forEach((b,i)=>cl.push(`@GW_R${i+1} = [${b.map(c=>c+'.r'+(i+1)).join(' ')}];`));
+    for(let k=lv.length;k>=1;k--)add('calt',`sub @GW_R${k-1} [${lv[k-1].join(' ')}]' by [${lv[k-1].map(c=>c+'.r'+k).join(' ')}];`)}
+  return (cl.length?cl.join('\n')+'\n\n':'')+Object.keys(F).sort().map(t=>`feature ${t} {\n  ${F[t].join('\n  ')}\n} ${t};`).join('\n\n')}
 /* parser: returns {feats:{tag:[rule]}, errors:[]}; rule = {ign, bt:[set], inp:[set], la:[set], out:[set], marked, line} where set = [names] */
 function parseFea(src){
   const errors=[],classes={},feats={},order=[];const toks=[];
@@ -1238,7 +1259,7 @@ function snap(ch){const g=S.glyphs[ch];return {ch,d:JSON.stringify(g?{c:g.c,k:g.
 function pushUndo(){const ch=curCh();if(!ch)return;undoS.push(snap(ch));if(undoS.length>200)undoS.shift();redoS.length=0;updButtons()}
 function restore(s){const d=JSON.parse(s.d);if(d){const g=S.glyphs[s.ch]||(S.glyphs[s.ch]={v:0});g.c=d.c;g.k=d.k||[];g.u=d.u||[];g.l=d.l;g.r=d.r;g.lk=d.lk||'';g.rk=d.rk||''}else delete S.glyphs[s.ch];
   sel.clear();openC=null;changed(s.ch)}
-function metaSnap(){return {m:JSON.stringify({kern:S.kern,gkern:S.gkern||{},groups:S.groups||{},spacing:S.spacing,strength:S.strength,mono:S.mono||0})}}
+function metaSnap(){return {m:JSON.stringify({kern:S.kern,gkern:S.gkern||{},groups:S.groups||{},spacing:S.spacing,strength:S.strength,mono:S.mono||0,ctx:S.ctx||{}})}}
 function pushUndoMeta(){undoS.push(metaSnap());if(undoS.length>200)undoS.shift();redoS.length=0;updButtons()}
 function restoreMeta(s){Object.assign(S,JSON.parse(s.m));MC.clear();syncUI();changed(null)}
 function undo(){const s=undoS.pop();if(!s)return;if(s.m){redoS.push(metaSnap());restoreMeta(s);updButtons();return}if(s.multi){redoS.push({multi:s.multi.map(x=>snap(x.ch))});s.multi.forEach(restore)}else{redoS.push(snap(s.ch));restore(s)}updButtons()}
@@ -1253,20 +1274,20 @@ function changed(ch){if(ch){const g=S.glyphs[ch];if(g)g.v=(g.v||0)+1;dirty.add('
 function schedule(){clearTimeout(saveT);saveT=setTimeout(flush,900);setStatus('Ändert…')}
 const gid=ch=>'g_'+ch.codePointAt(0).toString(16).padStart(4,'0');
 function serial(){const g={};for(const [k,v] of Object.entries(S.glyphs))g[k]={c:v.c,k:v.k||[],l:v.l||0,r:v.r||0,...(v.u&&v.u.length?{u:v.u.map(({id,dx,dy})=>({id,dx,dy}))}:{}),...(v.lk?{lk:v.lk}:{}),...(v.rk?{rk:v.rk}:{})};
-  return {name:S.name,spacing:S.spacing,strength:S.strength,kern:S.kern,gkern:S.gkern||{},groups:S.groups||{},parts:S.parts||{},text:S.text,example:!!S.example,t:S.t,names:S.names||{},fea:S.fea||'',feaAuto:S.feaAuto!==false,ps:S.ps||[],fmt:S.fmt||{},mono:S.mono||0,sets:S.sets||[],csets:S.csets||[],glyphs:g}}
+  return {name:S.name,spacing:S.spacing,strength:S.strength,kern:S.kern,gkern:S.gkern||{},groups:S.groups||{},parts:S.parts||{},text:S.text,example:!!S.example,t:S.t,names:S.names||{},fea:S.fea||'',feaAuto:S.feaAuto!==false,ps:S.ps||[],fmt:S.fmt||{},mono:S.mono||0,sets:S.sets||[],csets:S.csets||[],ctx:S.ctx||{},glyphs:g}}
 async function flush(){
   try{localStorage.setItem(LOCAL_KEY,JSON.stringify(serial()))}catch(e){}
   if(!db){setStatus('Auf diesem Gerät gespeichert');dirty.clear();return}
   if(saving){schedule();return}saving=true;const keys=[...dirty];dirty.clear();
   try{for(const k of keys){
-      if(k==='meta')await db.doc(`data/users/${uid}/meta`).set({name:S.name,spacing:S.spacing,strength:S.strength,kern:JSON.stringify(S.kern),gkern:JSON.stringify(S.gkern||{}),groups:JSON.stringify(S.groups||{}),parts:JSON.stringify(S.parts||{}),text:S.text,example:!!S.example,t:S.t,names:JSON.stringify(S.names||{}),fea:S.fea||'',feaAuto:S.feaAuto!==false,ps:JSON.stringify(S.ps||[]),fmt:JSON.stringify(S.fmt||{}),mono:S.mono||0,sets:JSON.stringify(S.sets||[]),csets:JSON.stringify(S.csets||[])});
+      if(k==='meta')await db.doc(`data/users/${uid}/meta`).set({name:S.name,spacing:S.spacing,strength:S.strength,kern:JSON.stringify(S.kern),gkern:JSON.stringify(S.gkern||{}),groups:JSON.stringify(S.groups||{}),parts:JSON.stringify(S.parts||{}),text:S.text,example:!!S.example,t:S.t,names:JSON.stringify(S.names||{}),fea:S.fea||'',feaAuto:S.feaAuto!==false,ps:JSON.stringify(S.ps||[]),fmt:JSON.stringify(S.fmt||{}),mono:S.mono||0,sets:JSON.stringify(S.sets||[]),csets:JSON.stringify(S.csets||[]),ctx:JSON.stringify(S.ctx||{})});
       else{const ch=k.slice(2),g=S.glyphs[ch];await db.doc(`data/users/${uid}/${gid(ch)}`).set({ch,c:JSON.stringify(g?g.c:[]),k:JSON.stringify(g?g.k||[]:[]),u:JSON.stringify(g&&g.u?g.u.map(({id,dx,dy})=>({id,dx,dy})):[]),l:g?g.l||0:0,r:g?g.r||0:0,lk:g&&g.lk||'',rk:g&&g.rk||'',t:S.t})}}
     setStatus('In deinem Konto gespeichert')}
   catch(e){for(const k of keys)dirty.add(k);setStatus('Speichern fehlgeschlagen, nur lokal');}
   saving=false}
 function setStatus(t){document.getElementById('status').textContent=t}
 function fromSerial(o){const g={};for(const [k,v] of Object.entries(o.glyphs||{}))g[k]={c:v.c||[],k:v.k||[],u:v.u||[],l:v.l||0,r:v.r||0,lk:v.lk||'',rk:v.rk||'',v:1};
-  return {name:o.name||'Meine Schrift',spacing:+o.spacing||60,strength:o.strength??50,kern:o.kern||{},gkern:o.gkern||{},groups:o.groups||{},parts:o.parts||{},glyphs:g,text:o.text||'HOT AVO nono',example:!!o.example,t:o.t||0,names:o.names||{},fea:o.fea||'',feaAuto:o.feaAuto!==false,ps:o.ps||[],fmt:o.fmt||{},mono:+o.mono||0,sets:o.sets||[],csets:o.csets||[]}}
+  return {name:o.name||'Meine Schrift',spacing:+o.spacing||60,strength:o.strength??50,kern:o.kern||{},gkern:o.gkern||{},groups:o.groups||{},parts:o.parts||{},glyphs:g,text:o.text||'HOT AVO nono',example:!!o.example,t:o.t||0,names:o.names||{},fea:o.fea||'',feaAuto:o.feaAuto!==false,ps:o.ps||[],fmt:o.fmt||{},mono:+o.mono||0,sets:o.sets||[],csets:o.csets||[],ctx:o.ctx||{}}}
 function loadLocal(){try{const s=localStorage.getItem(LOCAL_KEY);if(s)return fromSerial(JSON.parse(s))}catch(e){}return null}
 async function initStore(){
   if(!window.claude||!window.claude.use){setStatus(S.example?'Beispiel, nur auf diesem Gerät':'Auf diesem Gerät gespeichert');return}
@@ -1277,7 +1298,7 @@ async function initStore(){
     let meta=null;const gl={};
     for(const doc of snapq.docs){const v=doc.data();if(!v)continue;if(doc.id==='meta')meta=v;else if(v.ch)gl[v.ch]={c:JSON.parse(v.c||'[]'),k:JSON.parse(v.k||'[]'),u:JSON.parse(v.u||'[]'),l:v.l||0,r:v.r||0,lk:v.lk||'',rk:v.rk||'',v:1}}
     if(meta&&(meta.t||0)>=(S.t||0)){
-      S={name:meta.name||'Meine Schrift',spacing:meta.spacing||60,strength:meta.strength??50,kern:JSON.parse(meta.kern||'{}'),gkern:JSON.parse(meta.gkern||'{}'),groups:JSON.parse(meta.groups||'{}'),parts:JSON.parse(meta.parts||'{}'),glyphs:gl,text:meta.text||'HOT AVO nono',example:!!meta.example,t:meta.t||0,names:JSON.parse(meta.names||'{}'),fea:meta.fea||'',feaAuto:meta.feaAuto!==false,ps:JSON.parse(meta.ps||'[]'),fmt:JSON.parse(meta.fmt||'{}'),mono:+meta.mono||0,sets:JSON.parse(meta.sets||'[]'),csets:JSON.parse(meta.csets||'[]')};
+      S={name:meta.name||'Meine Schrift',spacing:meta.spacing||60,strength:meta.strength??50,kern:JSON.parse(meta.kern||'{}'),gkern:JSON.parse(meta.gkern||'{}'),groups:JSON.parse(meta.groups||'{}'),parts:JSON.parse(meta.parts||'{}'),glyphs:gl,text:meta.text||'HOT AVO nono',example:!!meta.example,t:meta.t||0,names:JSON.parse(meta.names||'{}'),fea:meta.fea||'',feaAuto:meta.feaAuto!==false,ps:JSON.parse(meta.ps||'[]'),fmt:JSON.parse(meta.fmt||'{}'),mono:+meta.mono||0,sets:JSON.parse(meta.sets||'[]'),csets:JSON.parse(meta.csets||'[]'),ctx:JSON.parse(meta.ctx||'{}')};
       MC.clear();active=Math.min(active,[...S.text].length-1);syncUI();relayout();fit();renderInsp();setStatus('In deinem Konto gespeichert')}
     else if(!S.example){dirty.add('meta');for(const ch of Object.keys(S.glyphs))dirty.add('g:'+ch);flush()}
     else setStatus('Beispiel, wird beim ersten Strich gespeichert')}
@@ -1452,6 +1473,11 @@ function renderInsp(){
       if(ids.length)parts.push(`<div class="blk"><span class="lbl">Bauteil einsetzen</span><select class="sel" data-pins="1"><option value="">wählen…</option>${ids.map(id=>`<option value="${id}">${esc(S.parts[id].name)} (${chs(partUsers(id))})</option>`).join('')}</select></div>`)}
     if(openC)parts.push(`<div class="blk">${btn('close','Kontur schließen')}${btn('endopen','Fertig')}</div>`);
     if(clip&&ch&&ch!==' ')parts.push(`<div class="blk">${btn('paste','Einfügen')}</div>`);
+    {const nm=ch&&nameOf(ch);
+      if(nm&&nm.includes('.')&&!sel.size&&!openC&&!selStroke){const cx=(S.ctx||{})[nm]||{},b=nm.split('.')[0],rm=/\.r(\d)$/.exec(nm);
+        parts.push(rm?`<div class="blk"><span class="lbl">Wechsel-Variante ${rm[1]}</span><span class="note">Kommt im Text automatisch abwechselnd mit ${esc(b)}, z. B. im zweiten ${esc(b)} von ${esc(b+b)}. Sichtbar im Probetext.</span></div>`
+          :`<div class="blk"><span class="lbl">Nur vor</span><input class="ctxin" data-ctx="n" data-name="${esc(nm)}" value="${esc(cx.n||'')}" placeholder="z. B. aeo" size="8"><span class="lbl">Nur nach</span><input class="ctxin" data-ctx="p" data-name="${esc(nm)}" value="${esc(cx.p||'')}" placeholder="z. B. T" size="8"><span class="note">Leer = nur über Feature ${esc(nm.split('.').pop())}. Mit Buchstaben ersetzt ${esc(b)} sich automatisch, z. B. ${esc(b)} vor a.</span></div>`)}
+      else if(ch&&!nm&&/\p{L}/u.test(ch)&&gm(ch)&&!sel.size&&!openC&&!selStroke&&!selPart&&!editPart)parts.push(`<div class="blk"><span class="lbl">Varianten</span>${btn('mkrot','+ Wechsel-Variante')}${btn('mkctx','+ Kontext-Variante')}${(()=>{const nx=[...S.text][active+1];return nx&&/\p{L}/u.test(nx)&&!nameOf(nx)&&gm(nx)?btn('mklig','+ Ligatur '+esc(ch+nx)):''})()}</div>`)}
     if(it&&it.m&&it.m.comp&&!sel.size&&!openC)parts.push(`<div class="blk"><span class="lbl">Verknüpft</span><span class="note">„${esc(disp(ch))}“ = ${it.m.comp.map(c=>esc(disp(c))).join(' + ')}. Änderst du die Teile, ändert sich das hier mit. Zeichnest du hier, gilt deine Version.</span>${btn('decomp','Zerlegen')}</div>`);
     else if(ch&&(COMPOSE[ch]||PARTS[ch]||ALIAS[ch])&&hasInk(S.glyphs[ch])&&!sel.size&&!openC)parts.push(`<div class="blk"><span class="lbl">Eigene Version</span>${btn('relink','Wieder aus '+(COMPOSE[ch]||(ALIAS[ch]?[ALIAS[ch]]:PARTS[ch].map(q=>q[0]))).filter((c,i,a)=>a.indexOf(c)===i).map(c=>esc(disp(c))).join(' + '))}</div>`);
     else if(it&&it.m&&!it.m.empty&&S.glyphs[ch]){const g=S.glyphs[ch];
@@ -1476,13 +1502,21 @@ function renderInsp(){
 }
 let clip=null;
 for(const evn of ['pointerdown','mousedown'])insp.addEventListener(evn,e=>{if(document.activeElement===ed&&e.target.closest('button'))e.preventDefault()});
-insp.addEventListener('change',e=>{const t=e.target;if(t.dataset&&t.dataset.pins&&t.value){pushUndo();const G=curGlyph(true);(G.u||(G.u=[])).push({id:t.value,dx:0,dy:0});selPart=G.u[G.u.length-1];return changed(curCh())}if(t.dataset&&t.dataset.key){const c=t.dataset.ch;pushUndoFor(c);const G=sbGlyph(c);G[t.dataset.key+'k']=t.value;G.l=t.dataset.key==='l'&&t.value?0:G.l;G.r=t.dataset.key==='r'&&t.value?0:G.r;return changed(c)}
+insp.addEventListener('change',e=>{const t=e.target;if(t.dataset&&t.dataset.ctx){pushUndoMeta();S.ctx=S.ctx||{};const o=S.ctx[t.dataset.name]||(S.ctx[t.dataset.name]={});o[t.dataset.ctx]=t.value.replace(/\s+/g,'');return changed(null)}if(t.dataset&&t.dataset.pins&&t.value){pushUndo();const G=curGlyph(true);(G.u||(G.u=[])).push({id:t.value,dx:0,dy:0});selPart=G.u[G.u.length-1];return changed(curCh())}if(t.dataset&&t.dataset.key){const c=t.dataset.ch;pushUndoFor(c);const G=sbGlyph(c);G[t.dataset.key+'k']=t.value;G.l=t.dataset.key==='l'&&t.value?0:G.l;G.r=t.dataset.key==='r'&&t.value?0:G.r;return changed(c)}
   if(!t.dataset||!t.dataset.grp)return;const side=t.dataset.grp,ch=t.dataset.ch,v=t.value;
   pushUndoMeta();S.groups=S.groups||{};const o={...(S.groups[ch]||{})};if(v==='@auto')delete o[side];else o[side]=v==='@own'?ch:v;
   if(o.l||o.r)S.groups[ch]=o;else delete S.groups[ch];changed(null)});
 insp.addEventListener('input',e=>{
   if(e.target.id==='nibA'){nib.a=+e.target.value;e.target.nextElementSibling.textContent=nib.a+'°';saveNib()}});
 insp.addEventListener('click',e=>{const b=e.target.closest('button[data-act]');if(!b)return;const a=b.dataset.act;const ch=curCh();const g=curGlyph(false);
+  if(a==='mklig'){const t=[...S.text],nx=t[active+1];const A=gm(ch),B=gm(nx);if(!A||!B)return;const n=`${ch}_${nx}.liga`,c=newName(n);
+    if(!S.glyphs[c]||!hasInk(S.glyphs[c])){const k=kernOf(ch,nx),off=A.adv+k-A.dx+B.dx;S.glyphs[c]={c:[...A.cs.map(q=>shiftC(q,0,0)),...B.cs.map(q=>shiftC(q,off,0))],k:[],l:0,r:0,v:1}}
+    t.splice(active,2,c);S.text=t.join('');txt.value=textToShow(S.text);dirty.add('g:'+c);changed(null);activate(active);
+    toast(`Ligatur ${ch}${nx} angelegt, aus beiden Buchstaben zusammengesetzt. Zeichne die Verbindung, im Text ersetzt sie ${ch}${nx} automatisch.`);return}
+  if(a==='mkrot'||a==='mkctx'){let k=1;const pre=a==='mkrot'?'.r':'.ctx';while(chOfName(ch+pre+k)&&S.glyphs[chOfName(ch+pre+k)])k++;const n=ch+pre+k,c=newName(n),src=S.glyphs[ch],it=curItem();
+    const J=x=>JSON.parse(JSON.stringify(x||[]));S.glyphs[c]=src&&hasInk(src)?{c:J(src.c),k:J(src.k),u:J(src.u),l:src.l||0,r:src.r||0,v:1}:{c:J(it&&it.m?it.m.cs:[]),k:[],l:0,r:0,v:1};
+    const t=[...S.text];t.splice(active+1,0,c);S.text=t.join('');txt.value=textToShow(S.text);dirty.add('g:'+c);changed(null);activate(active+1);
+    toast(a==='mkrot'?`${n} angelegt, als Kopie. Verändere sie leicht, dann wechseln sich die Formen im Text ab.`:`${n} angelegt. Trag ein, vor oder nach welchen Buchstaben sie kommt.`);return}
   if(a==='sbez'&&selStroke&&g){pushUndo();const st=selStroke;selStroke=null;if(!bezStrokes(ch,[st]))toast('Zu klein für Kurven.');else toast('Strich ist jetzt eine Kontur mit Punkten und Griffen.');return changed(ch)}
   if(a==='kbez'&&g&&g.k&&g.k.length){pushUndo();const n=bezStrokes(ch,g.k.slice());toast(n+' Konturen. Tippe auf eine Kontur, um Punkte und Griffe zu bearbeiten.');return changed(ch)}
   if(a==='sdel'&&selStroke&&g){pushUndo();g.k=g.k.filter(x=>x!==selStroke);selStroke=null;return changed(ch)}
