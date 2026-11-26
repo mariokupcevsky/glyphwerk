@@ -1,5 +1,10 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Glyphwerk: Schrift-Editor im Browser, mit Stift und Touch. Export als TTF und OTF.">
 <title>Glyphwerk</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <style>
@@ -20,6 +25,7 @@
   --accent:#7d97ff; --on-accent:#0d1330; --accent-soft:#25305a; --handle:#fb923c; --guide:#5b6375; --ghost:#3a404d;
   --kern-auto:#7d97ff; --kern-man:#f472b6; --kern-grp:#4ade80; color-scheme:dark}
 html,body{height:100%}
+#app{height:100dvh}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-ui);font-size:15px;overflow:hidden}
 #app{height:100%;display:flex;flex-direction:column;gap:8px;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));padding-block:8px;box-sizing:border-box}
 header{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
@@ -55,7 +61,7 @@ header #txt{display:none}
 .code{font:13px/1.45 var(--f-mono);width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--bg);color:var(--ink);white-space:pre;overflow:auto;margin:0}
 pre.code{min-height:2.5em;max-height:220px}
 .sheet h3{font-size:14px;margin:16px 0 6px;font-weight:600}
-.ai{background:var(--accent-soft);border-radius:10px;padding:10px 12px;margin:10px 0}
+.ai[hidden]{display:none}.ai{background:var(--accent-soft);border-radius:10px;padding:10px 12px;margin:10px 0}
 .ai label{font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
 .ai textarea{width:100%;box-sizing:border-box;font:15px var(--f-ui);border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--surface);color:var(--ink)}
 #tFeat label{display:flex;gap:4px;align-items:center;font:13px var(--f-mono);color:var(--ink);min-width:0}
@@ -76,7 +82,6 @@ body.clean .cleanbar{display:flex}
 .cleanbar input{width:120px}
 .dock .size b{font:500 12px 'IBM Plex Mono',monospace;color:var(--ink);min-width:2.6em;display:inline-block}
 @media (pointer:coarse){.fine{display:none}}
-@media (max-width:760px){.rail{position:static;transform:none;flex-direction:row;flex-wrap:wrap;max-height:none;margin:4px}.stage{display:flex;flex-direction:column}.stage #cv{position:absolute}.rail.left,.rail.right{position:relative;z-index:1;align-self:flex-start}}
 #insp{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;min-height:44px;font-size:14px}
 #insp .blk{display:flex;flex-wrap:wrap;gap:4px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:3px 6px}
 #insp .lbl{color:var(--muted);font-size:12px;font-weight:500;letter-spacing:.02em;margin:0 4px}
@@ -101,9 +106,27 @@ body.clean .cleanbar{display:flex}
 .note{font-size:13px;color:var(--muted);line-height:1.5;max-width:62ch}
 .msg{font-size:14px;margin-top:8px;min-height:1.4em}
 @media (max-width:640px){button{padding:7px 8px;font-size:13px}.brand small{display:none}}
+#inspTgl{display:none}
+@media (max-width:760px){
+  body{overflow:auto}.status{white-space:normal}
+  #app{height:auto;min-height:100dvh}
+  .stage{flex:0 0 auto;height:auto;min-height:0;display:flex;flex-direction:column;overflow:visible}
+  .stage #cv{position:relative;inset:auto;order:1;flex:0 0 auto;height:max(55vh,320px);border-radius:12px}
+  .stage .rail{order:0;position:static;transform:none;flex-direction:row;flex-wrap:nowrap;max-height:none;overflow-x:auto;margin:0 0 6px;box-shadow:none;-webkit-overflow-scrolling:touch}
+  .stage .rail button,.stage .rail .sel{flex:0 0 auto}
+  .stage .dock{order:2;position:static;transform:none;margin:6px auto 0;max-width:100%;box-shadow:none}
+  .hint{display:none}
+  #inspTgl{display:flex;justify-content:space-between;width:100%;min-height:44px;align-items:center;background:var(--surface);border:1px solid var(--line)}
+  #insp{max-height:40vh;overflow:auto;-webkit-overflow-scrolling:touch}
+  body.insp-closed #insp{display:none}
+  body.clean #inspTgl{display:none}
+  .dock button{min-height:44px;min-width:44px}
+  .sheet>div{max-height:90%}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
-
+</head>
+<body>
 <div id="app">
   <header>
     <div class="brand">Glyphwerk<small id="fontNameLbl">Meine Schrift</small></div>
@@ -175,6 +198,7 @@ body.clean .cleanbar{display:flex}
       </div>
     </div>
   </div>
+  <button id="inspTgl" aria-expanded="true" aria-controls="insp">Details <span aria-hidden="true">▾</span></button>
   <div id="insp"></div>
 </div>
 
@@ -191,7 +215,7 @@ body.clean .cleanbar{display:flex}
   <h2>OpenType-Features <button class="solid" data-close>Schließen</button></h2>
   <p class="note">Wie in Glyphs entstehen viele Features aus dem Namen. Tippe im Textfeld <b>/a.ss01</b> und ein Leerzeichen, dann zeichnest du diese Variante direkt in der Zeile. <b>.ss01</b> bis <b>.ss20</b> werden Stilsets, <b>.sc</b> Kapitälchen, <b>.alt</b> Alternativen, <b>.onum</b> Mediävalziffern, <b>f_i</b> eine Ligatur.</p>
   <p class="note">Handschrift: Bei einem Buchstaben unter „Varianten“ legt „+ Wechsel-Variante“ e.r1 an (dann e.r2 …). Im Text wechseln sich die Formen automatisch ab, so sieht ee nie gleich aus. „+ Kontext-Variante“ legt H.ctx1 an: Du trägst ein, vor oder nach welchen Buchstaben sie kommt (z. B. H vor a). „+ Ligatur“ macht aus zwei Buchstaben eine Verbindung, die im Text automatisch erscheint.</p>
-  <div class="ai">
+  <div class="ai" id="feaAI" hidden>
     <label for="feaAsk">Was soll passieren?</label>
     <textarea id="feaAsk" rows="2" placeholder="z. B. Am Wortende soll ein anderes g stehen"></textarea>
     <div class="row" style="margin:6px 0 0"><button class="primary" id="bFeaAI">Claude schreibt den Code</button><span class="msg" id="feaAIMsg" role="status" style="margin:0"></span></div>
@@ -274,7 +298,7 @@ let tool='brush',inv=false,mouseSel=false,selStroke=null,selK=new Set(),selMode=
 try{inv=localStorage.getItem('glyphwerk.inv')==='1'}catch(e){}
 let LANG='de';try{LANG=localStorage.getItem('glyphwerk.lang')||((navigator.language||'de').toLowerCase().startsWith('de')?'de':'en')}catch(e){LANG=(navigator.language||'de').toLowerCase().startsWith('de')?'de':'en'}
 /* ---------- language: UI is written in German; English comes from this table (exact strings) and the patterns below ---------- */
-const I18N={'Vereinfachen':'Simplify',
+const I18N={'OTF exportieren':'Export OTF','Die OTF wird direkt heruntergeladen. Damit Pages, Notizen oder Word auf dem iPad die Schrift nutzen, muss sie installiert werden, zum Beispiel mit einer Schrift-Installations-App aus dem App Store. Auf Mac und Windows reicht ein Doppelklick auf die Datei.':'The OTF downloads directly. To use the font in Pages, Notes or Word on iPad it has to be installed, for example with a font installer app from the App Store. On Mac and Windows, double-click the file.','Details':'Details','Speichern im Browser fehlgeschlagen (Speicher voll?). Bitte „Projekt sichern (.json)“ unter Schrift & Export nutzen.':'Saving in the browser failed (storage full?). Please use “Back up project (.json)” under Font & Export.','Vereinfachen':'Simplify',
 '▭ Rechteck':'▭ Rectangle','Lasso':'Lasso','Auswahl':'Selection','Mit dem Stift ins Leere ziehen wählt aus. Ausgewähltes ziehen verschiebt es.':'Drag with the pen on empty space to select. Drag the selection to move it.',
 '↖ Auswahl':'↖ Select','Punkte, Griffe und Striche anfassen, ohne zu zeichnen':'Grab points, handles and strokes without drawing','Auswahl: Punkte, Griffe, Konturen und Striche antippen und ziehen. Nichts wird gezeichnet.':'Select: tap and drag points, handles, contours and strokes. Nothing gets drawn.','Punkte reduzieren':'Reduce points','Weniger Punkte geht nicht, ohne die Form zu verändern.':'Fewer points are not possible without changing the shape.','Kontur':'contour','Konturen':'contours',
 'Handschrift: Bei einem Buchstaben unter „Varianten“ legt „+ Wechsel-Variante“ e.r1 an (dann e.r2 …). Im Text wechseln sich die Formen automatisch ab, so sieht ee nie gleich aus. „+ Kontext-Variante“ legt H.ctx1 an: Du trägst ein, vor oder nach welchen Buchstaben sie kommt (z. B. H vor a). „+ Ligatur“ macht aus zwei Buchstaben eine Verbindung, die im Text automatisch erscheint.':'Handwriting: on a letter, under “Variants”, “+ Alternating variant” creates e.r1 (then e.r2 …). In text the forms alternate automatically, so ee never looks the same. “+ Context variant” creates H.ctx1: enter before or after which letters it appears (e.g. H before a). “+ Ligature” turns two letters into one connected glyph that appears automatically in text.',
@@ -1325,8 +1349,9 @@ const gid=ch=>'g_'+ch.codePointAt(0).toString(16).padStart(4,'0');
 function serial(){const g={};for(const [k,v] of Object.entries(S.glyphs))g[k]={c:v.c,k:v.k||[],l:v.l||0,r:v.r||0,...(v.u&&v.u.length?{u:v.u.map(({id,dx,dy})=>({id,dx,dy}))}:{}),...(v.lk?{lk:v.lk}:{}),...(v.rk?{rk:v.rk}:{})};
   return {name:S.name,spacing:S.spacing,strength:S.strength,kern:S.kern,gkern:S.gkern||{},groups:S.groups||{},parts:S.parts||{},text:S.text,example:!!S.example,t:S.t,names:S.names||{},fea:S.fea||'',feaAuto:S.feaAuto!==false,ps:S.ps||[],fmt:S.fmt||{},mono:S.mono||0,spaceW:S.spaceW||0,sets:S.sets||[],csets:S.csets||[],ctx:S.ctx||{},glyphs:g}}
 async function flush(){
-  try{localStorage.setItem(LOCAL_KEY,JSON.stringify(serial()))}catch(e){}
-  if(!db){setStatus('Auf diesem Gerät gespeichert');dirty.clear();return}
+  let okLocal=true;try{localStorage.setItem(LOCAL_KEY,JSON.stringify(serial()))}catch(e){okLocal=false}
+  if(!okLocal){setStatus('Speichern im Browser fehlgeschlagen (Speicher voll?). Bitte „Projekt sichern (.json)“ unter Schrift & Export nutzen.');if(!db){dirty.clear();return}}
+  else if(!db){setStatus('Auf diesem Gerät gespeichert');dirty.clear();return}
   if(saving){schedule();return}saving=true;const keys=[...dirty];dirty.clear();
   try{for(const k of keys){
       if(k==='meta')await db.doc(`data/users/${uid}/meta`).set({name:S.name,spacing:S.spacing,strength:S.strength,kern:JSON.stringify(S.kern),gkern:JSON.stringify(S.gkern||{}),groups:JSON.stringify(S.groups||{}),parts:JSON.stringify(S.parts||{}),text:S.text,example:!!S.example,t:S.t,names:JSON.stringify(S.names||{}),fea:S.fea||'',feaAuto:S.feaAuto!==false,ps:JSON.stringify(S.ps||[]),fmt:JSON.stringify(S.fmt||{}),mono:S.mono||0,spaceW:S.spaceW||0,sets:JSON.stringify(S.sets||[]),csets:JSON.stringify(S.csets||[]),ctx:JSON.stringify(S.ctx||{})});
@@ -1874,7 +1899,9 @@ document.getElementById('bTTF').onclick=async()=>{
   catch(e){msg('Export fehlgeschlagen: '+e.message)}};
 document.getElementById('bOTF').onclick=async()=>{
   try{const r=buildOTF();if(!r.glyphs){msg('Noch keine Buchstaben gezeichnet.');return}
-    const base=psName((S.name||'Glyphwerk').trim());const z=zipStore([{name:base+'.otf',data:r.buf}]);
+    const base=psName((S.name||'Glyphwerk').trim());
+    if(!(window.claude&&window.claude.use)){if(await saveFile(base+'.otf',new Blob([r.buf],{type:'font/otf'})))msg(`${base}.otf gespeichert: ${r.glyphs} Zeichen, ${r.pairs} Kerning-Paare.`);return}
+    const z=zipStore([{name:base+'.otf',data:r.buf}]);
     if(await saveFile(base+'-otf.zip',new Blob([z],{type:'application/zip'})))msg(`${base}-otf.zip gespeichert: ${r.glyphs} Zeichen, ${r.pairs} Kerning-Paare. In Dateien antippen zum Entpacken.`)}
   catch(e){msg('Export fehlgeschlagen: '+e.message)}};
 document.getElementById('bBackup').onclick=async()=>{if(await saveFile(psName(S.name)+'.glyphwerk.json',JSON.stringify(serial())))msg('Projekt gesichert.')};
@@ -1921,5 +1948,14 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener('change',draw);
 new MutationObserver(draw).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 setTool('brush');
 document.getElementById('bLang').onclick=()=>setLang(LANG==='en'?'de':'en');i18nStart();document.getElementById('bLang').textContent=LANG==='en'?'DE':'EN';
+const IN_CLAUDE=!!(window.claude&&window.claude.use);
+if(IN_CLAUDE)document.getElementById('feaAI').hidden=false;
+else{document.getElementById('bOTF').textContent='OTF exportieren';
+  const n=document.getElementById('bOTF').closest('.sheet').querySelector('.note:last-of-type');
+  if(n)n.textContent='Die OTF wird direkt heruntergeladen. Damit Pages, Notizen oder Word auf dem iPad die Schrift nutzen, muss sie installiert werden, zum Beispiel mit einer Schrift-Installations-App aus dem App Store. Auf Mac und Windows reicht ein Doppelklick auf die Datei.'}
+const inspTgl=document.getElementById('inspTgl');
+inspTgl.onclick=()=>{const c=document.body.classList.toggle('insp-closed');inspTgl.setAttribute('aria-expanded',!c);inspTgl.lastElementChild.textContent=c?'▸':'▾';setTimeout(()=>{resize();fit()},0)};
 setTimeout(initStore,0);
 </script>
+</body>
+</html>
