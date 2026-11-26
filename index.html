@@ -24,7 +24,7 @@
   --bg:#111318; --surface:#1a1d24; --ink:#e8eaf0; --muted:#9aa1b0; --line:#2c313c;
   --accent:#7d97ff; --on-accent:#0d1330; --accent-soft:#25305a; --handle:#fb923c; --guide:#5b6375; --ghost:#3a404d;
   --kern-auto:#7d97ff; --kern-man:#f472b6; --kern-grp:#4ade80; color-scheme:dark}
-html,body{height:100%}
+html,body{height:100%;margin:0}
 #app{height:100dvh}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-ui);font-size:15px;overflow:hidden}
 #app{height:100%;display:flex;flex-direction:column;gap:8px;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));padding-block:8px;box-sizing:border-box}
@@ -107,6 +107,12 @@ body.clean .cleanbar{display:flex}
 .msg{font-size:14px;margin-top:8px;min-height:1.4em}
 @media (max-width:640px){button{padding:7px 8px;font-size:13px}.brand small{display:none}}
 #inspTgl{display:none}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:0 0 -2px}
+.tabs[hidden]{display:none}
+.tabs button{border-radius:8px 8px 0 0;min-height:40px;color:var(--muted)}
+.tabs button.on{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-bottom-color:var(--surface);font-weight:600}
+#insp,.tabs{flex:0 0 auto}
+@media (min-width:761px){#insp{max-height:30vh;overflow:auto}.stage{min-height:240px}}
 @media (max-width:760px){
   body{overflow:auto}.status{white-space:normal}
   #app{height:auto;min-height:100dvh}
@@ -132,7 +138,7 @@ body.clean .cleanbar{display:flex}
     <div class="brand">Glyphwerk<small id="fontNameLbl">Meine Schrift</small></div>
     <input id="txt" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Text zum Bearbeiten">
     <span class="status" id="status">lädt…</span>
-    <div class="grp"><button id="bGen" aria-pressed="false" title="Schrift aus Regeln erzeugen">Regeln</button><button id="bSet">Zeichensatz</button><button id="bFea">Features</button><button id="bTest">Probetext</button><button id="bExp">Schrift &amp; Export</button></div><button id="bLang" class="solid" title="Sprache" aria-label="Sprache">EN</button>
+    <div class="grp"><button id="bGen" aria-pressed="false" title="Schrift aus Regeln erzeugen">Regeln</button><button id="bSet">Zeichensatz</button><button id="bFea">Features</button><button id="bTest">Probetext</button><button id="bExp">Schrift &amp; Export</button><button id="bFb">Feedback</button></div><button id="bLang" class="solid" title="Sprache" aria-label="Sprache">EN</button>
   </header>
   <div class="stage"><canvas id="cv"></canvas><div class="cleanbar" id="cleanBar"><label for="blurR">Blur</label><input id="blurR" type="range" min="0" max="12" step="0.5" value="0"><b id="blurV" class="num">0</b><button class="solid" id="bCleanX">Zurück (E)</button></div><textarea id="ed" aria-label="Text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" rows="1"></textarea><div class="hint" id="hint"></div>
     <div class="rail left" aria-label="Navigation">
@@ -198,6 +204,7 @@ body.clean .cleanbar{display:flex}
       </div>
     </div>
   </div>
+  <div id="inspTabs" role="tablist" aria-label="Bereich" class="tabs"></div>
   <button id="inspTgl" aria-expanded="true" aria-controls="insp">Details <span aria-hidden="true">▾</span></button>
   <div id="insp"></div>
 </div>
@@ -261,6 +268,17 @@ body.clean .cleanbar{display:flex}
   <p class="note">Die OTF kommt als ZIP, weil claude.ai .otf-Dateien nicht direkt speichern lässt. In der Dateien-App einmal antippen, dann liegt die OTF daneben. Damit Pages, Notizen oder Word auf dem iPad die Schrift nutzen, muss sie installiert werden, zum Beispiel mit einer Schrift-Installations-App aus dem App Store. Auf Mac und Windows reicht ein Doppelklick auf die Datei.</p>
 </div></div>
 
+<div class="sheet" id="sheetFb" hidden><div>
+  <h2>Fehler melden oder Idee senden <button class="solid" data-close>Schließen</button></h2>
+  <div class="row"><span class="seg" role="group" aria-label="Art"><button class="solid" id="fbBug" aria-pressed="true">Fehler</button><button class="solid" id="fbIdea" aria-pressed="false">Idee</button></span></div>
+  <div class="row"><label for="fbTitle">Kurz</label><input type="text" id="fbTitle" maxlength="100" placeholder="z. B. Stift setzt aus beim Zoomen"></div>
+  <div class="row"><label for="fbBody">Beschreibung</label><textarea id="fbBody" rows="5" style="flex:1;min-width:0;font:15px var(--f-ui);padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)" placeholder="Was hast du gemacht, was ist passiert, was hättest du erwartet?"></textarea></div>
+  <p class="note">Mitgesendet werden nur Version, Browser, Bildschirmgröße und Sprache. Keine Schrift und keine Glyphen.</p>
+  <div class="row"><button class="primary" id="fbSend">Auf GitHub senden</button><button class="solid" id="fbCopy">Text kopieren</button></div>
+  <p class="note">„Auf GitHub senden“ öffnet ein vorausgefülltes Ticket. Dafür brauchst du ein GitHub-Konto. Ohne Konto: „Text kopieren“ und an Mario schicken.</p>
+  <div class="msg" id="fbMsg" role="status"></div>
+</div></div>
+
 <script>
 'use strict';
 /* ---------- constants & state ---------- */
@@ -298,7 +316,7 @@ let tool='brush',inv=false,mouseSel=false,selStroke=null,selK=new Set(),selMode=
 try{inv=localStorage.getItem('glyphwerk.inv')==='1'}catch(e){}
 let LANG='de';try{LANG=localStorage.getItem('glyphwerk.lang')||((navigator.language||'de').toLowerCase().startsWith('de')?'de':'en')}catch(e){LANG=(navigator.language||'de').toLowerCase().startsWith('de')?'de':'en'}
 /* ---------- language: UI is written in German; English comes from this table (exact strings) and the patterns below ---------- */
-const I18N={'OTF exportieren':'Export OTF','Die OTF wird direkt heruntergeladen. Damit Pages, Notizen oder Word auf dem iPad die Schrift nutzen, muss sie installiert werden, zum Beispiel mit einer Schrift-Installations-App aus dem App Store. Auf Mac und Windows reicht ein Doppelklick auf die Datei.':'The OTF downloads directly. To use the font in Pages, Notes or Word on iPad it has to be installed, for example with a font installer app from the App Store. On Mac and Windows, double-click the file.','Details':'Details','Speichern im Browser fehlgeschlagen (Speicher voll?). Bitte „Projekt sichern (.json)“ unter Schrift & Export nutzen.':'Saving in the browser failed (storage full?). Please use “Back up project (.json)” under Font & Export.','Vereinfachen':'Simplify',
+const I18N={'Feedback':'Feedback','Fehler melden oder Idee senden':'Report a bug or send an idea','Fehler':'Bug','Idee':'Idea','Kurz':'Summary','Beschreibung':'Description','Auf GitHub senden':'Send on GitHub','Text kopieren':'Copy text','Glyphe':'Glyph','Glyphe':'Glyph','Abstand':'Spacing','Absatz':'Paragraph','Mitgesendet werden nur Version, Browser, Bildschirmgröße und Sprache. Keine Schrift und keine Glyphen.':'Only version, browser, screen size and language are sent. No font and no glyphs.','„Auf GitHub senden“ öffnet ein vorausgefülltes Ticket. Dafür brauchst du ein GitHub-Konto. Ohne Konto: „Text kopieren“ und an Mario schicken.':'“Send on GitHub” opens a prefilled ticket. You need a GitHub account for that. Without one: “Copy text” and send it to Mario.','Hier gibt es für die aktuelle Auswahl nichts einzustellen.':'Nothing to adjust for the current selection.','Bitte kurz beschreiben, worum es geht.':'Please add a short summary.','GitHub wurde geöffnet. Dort noch auf „Submit new issue“ tippen.':'GitHub opened. Tap “Submit new issue” there.','Kopiert. Schick den Text an Mario.':'Copied. Send the text to Mario.','OTF exportieren':'Export OTF','Die OTF wird direkt heruntergeladen. Damit Pages, Notizen oder Word auf dem iPad die Schrift nutzen, muss sie installiert werden, zum Beispiel mit einer Schrift-Installations-App aus dem App Store. Auf Mac und Windows reicht ein Doppelklick auf die Datei.':'The OTF downloads directly. To use the font in Pages, Notes or Word on iPad it has to be installed, for example with a font installer app from the App Store. On Mac and Windows, double-click the file.','Details':'Details','Speichern im Browser fehlgeschlagen (Speicher voll?). Bitte „Projekt sichern (.json)“ unter Schrift & Export nutzen.':'Saving in the browser failed (storage full?). Please use “Back up project (.json)” under Font & Export.','Vereinfachen':'Simplify',
 '▭ Rechteck':'▭ Rectangle','Lasso':'Lasso','Auswahl':'Selection','Mit dem Stift ins Leere ziehen wählt aus. Ausgewähltes ziehen verschiebt es.':'Drag with the pen on empty space to select. Drag the selection to move it.',
 '↖ Auswahl':'↖ Select','Punkte, Griffe und Striche anfassen, ohne zu zeichnen':'Grab points, handles and strokes without drawing','Auswahl: Punkte, Griffe, Konturen und Striche antippen und ziehen. Nichts wird gezeichnet.':'Select: tap and drag points, handles, contours and strokes. Nothing gets drawn.','Punkte reduzieren':'Reduce points','Weniger Punkte geht nicht, ohne die Form zu verändern.':'Fewer points are not possible without changing the shape.','Kontur':'contour','Konturen':'contours',
 'Handschrift: Bei einem Buchstaben unter „Varianten“ legt „+ Wechsel-Variante“ e.r1 an (dann e.r2 …). Im Text wechseln sich die Formen automatisch ab, so sieht ee nie gleich aus. „+ Kontext-Variante“ legt H.ctx1 an: Du trägst ein, vor oder nach welchen Buchstaben sie kommt (z. B. H vor a). „+ Ligatur“ macht aus zwei Buchstaben eine Verbindung, die im Text automatisch erscheint.':'Handwriting: on a letter, under “Variants”, “+ Alternating variant” creates e.r1 (then e.r2 …). In text the forms alternate automatically, so ee never looks the same. “+ Context variant” creates H.ctx1: enter before or after which letters it appears (e.g. H before a). “+ Ligature” turns two letters into one connected glyph that appears automatically in text.',
@@ -1405,7 +1423,8 @@ const snapV=v=>grid?Math.round(v/10)*10:Math.round(v);
 /* ---------- pointer handling ---------- */
 const ptrs=new Map();let penSeen=false,drag=null,pinch=null;
 let tapS=null,lastTap=null;
-cv.addEventListener('pointerdown',e=>{
+cv.addEventListener('pointerdown',e=>{if(!hintSeen){hintSeen=true;try{localStorage.setItem('glyphwerk.hint','1')}catch(_){}setTimeout(renderInsp,1500)}
+  
   e.preventDefault();try{cv.setPointerCapture(e.pointerId)}catch(_){}tapS={t:performance.now(),x:e.offsetX,y:e.offsetY,type:e.pointerType,id:e.pointerId};if(e.pointerType==='pen')penSeen=true;
   ptrs.set(e.pointerId,{x:e.offsetX,y:e.offsetY,type:e.pointerType});
   const touches=[...ptrs.values()].filter(p=>p.type==='touch');
@@ -1516,6 +1535,20 @@ function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;',
 function keySel(ch,side){const g=S.glyphs[ch]||{},cur=g[side+'k']||'';const cs=allChars().filter(c=>c!==ch&&!COMPOSE[c]&&(()=>{const m=gm(c);return m&&!m.empty})());
   return `<select class="sel" data-key="${side}" data-ch="${esc(ch)}" aria-label="${side==='l'?'Links':'Rechts'} gleich wie"><option value="">eigen</option>${cs.map(c=>`<option value="${esc(c)}" ${c===cur?'selected':''}>= ${esc(disp(c))}</option>`).join('')}</select>`}
 let toastUntil=0,toastTxt='';function toast(t){toastTxt=t;toastUntil=Date.now()+3500;renderInsp();setTimeout(renderInsp,3600)}
+let hintSeen=false;try{hintSeen=localStorage.getItem('glyphwerk.hint')==='1'}catch(e){}
+let inspTab='g';
+const TABS=[['g','Glyphe'],['s','Abstand'],['k','Kerning'],['p','Absatz']];
+function tabOf(h){return /data-act="(pk[-+]|pal-|ptr[-+]|flh|fw[-+])/.test(h)?'p':/data-act="(kp|kgo)|data-grp/.test(h)?'k':/data-act="(l[-+]|r[-+]|spw)/.test(h)?'s':'g'}
+function renderTabs(parts){
+  const tb=document.getElementById('inspTabs');
+  if(tool==='kern'){tb.hidden=true;insp.removeAttribute('role');insp.innerHTML=parts.join('');return}
+  const busy=sel.size||selStroke||selPart||openC||editPart||selK.size;
+  const by={g:[],s:[],k:[],p:[]};for(const h of parts)by[tabOf(h)].push(h);
+  if(busy)inspTab='g';
+  tb.hidden=false;tb.innerHTML=TABS.map(([k,l])=>`<button role="tab" class="${k===inspTab?'on':''}" data-tab="${k}" aria-selected="${k===inspTab}">${l}</button>`).join('');
+  insp.setAttribute('role','tabpanel');
+  insp.innerHTML=by[inspTab].join('')||'<span class="note">Hier gibt es für die aktuelle Auswahl nichts einzustellen.</span>'}
+document.getElementById('inspTabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;inspTab=b.dataset.tab;renderInsp()});
 function renderInsp(){
   const parts=[];const ch=curCh();const it=curItem();
   if(tool==='brush'&&(nib.n==='broad'||nib.ov))parts.push(`<div class="blk"><span class="lbl">Neigung</span><span class="num">${nib.tilt?'vom Pencil':nib.a+'°'}</span><button class="solid" data-act="tilt" aria-pressed="${nib.tilt}">Neigung vom Pencil nehmen</button></div>`);
@@ -1580,11 +1613,11 @@ function renderInsp(){
       ${btn('pal-l','Links','aria-pressed="'+(st.al==='l')+'"')}${btn('pal-c','Mitte','aria-pressed="'+(st.al==='c')+'"')}${btn('pal-r','Rechts','aria-pressed="'+(st.al==='r')+'"')}
       <span class="lbl">Laufweite</span>${btn('ptr-','−')}<span class="num">${st.tr}</span>${btn('ptr+','+')}</div>
       <div class="blk"><span class="lbl">Zeilenabstand</span>${btn('flh-','−')}<span class="num">${F.lh.toFixed(2)}</span>${btn('flh+','+')}<span class="lbl">Satzbreite</span>${btn('fw-','−')}<span class="num">${F.w}</span>${btn('fw+','+')}</div>`)}
-  insp.innerHTML=parts.join('');
+  renderTabs(parts);
   const hint=document.getElementById('hint');
   if(Date.now()<toastUntil){hint.textContent=toastTxt;return}
   hint.textContent=tool==='kern'?(kLevel==='s'?'Ebene 1 Abstand: seitlich ziehen ändert den linken Abstand des Buchstabens, überall.':kLevel==='g'?'Ebene 2 Gruppe: seitlich ziehen gilt für alle Paare aus diesen zwei Gruppen.':'Ebene 3 Paar: seitlich ziehen gilt nur für genau dieses Paar.'):tool==='select'?'Auswahl: Punkte, Griffe, Konturen und Striche antippen und ziehen. Nichts wird gezeichnet.':tool==='pen'?'Tippen setzt Ecken, ziehen setzt Kurvenpunkte. Ersten Punkt antippen schließt die Kontur. Auf eine Linie tippen fügt einen Punkt ein. Griffe (kleine Kreise) ziehen formt die Rundung, „Kurve“ gibt einer Ecke Griffe.':
-    document.activeElement===ed?'Tippen schreibt an der Cursor-Stelle, Return beginnt einen neuen Absatz. Der Stift zeichnet weiter.':'Stift zeichnet. Finger: antippen wählt, doppelt tippen öffnet die Tastatur. Ziehen verschiebt, zwei Finger zoomen.';
+    document.activeElement===ed?'Tippen schreibt an der Cursor-Stelle, Return beginnt einen neuen Absatz. Der Stift zeichnet weiter.':(hintSeen?'':'Stift zeichnet. Finger: antippen wählt, doppelt tippen öffnet die Tastatur. Ziehen verschiebt, zwei Finger zoomen.');
 }
 let clip=null;
 for(const evn of ['pointerdown','mousedown'])insp.addEventListener(evn,e=>{if(document.activeElement===ed&&e.target.closest('button'))e.preventDefault()});
@@ -1755,6 +1788,15 @@ document.addEventListener('keydown',e=>{if(clean&&(e.key==='Escape'||(e.key.toLo
 
 /* ---------- sheets ---------- */
 function openSheet(id){document.getElementById(id).hidden=false}
+/* dialogs: role, label, focus in/out, Escape, focus trap */
+let sheetFocus=[];
+for(const sh of document.querySelectorAll('.sheet')){const d=sh.firstElementChild,h=d.querySelector('h2');d.setAttribute('role','dialog');d.setAttribute('aria-modal','true');d.tabIndex=-1;
+  if(h){h.id=sh.id+'T';d.setAttribute('aria-labelledby',h.id)}
+  new MutationObserver(()=>{if(!sh.hidden){sheetFocus.push(document.activeElement);setTimeout(()=>(d.querySelector('[data-close]')||d).focus({preventScroll:true}),0)}else{const f=sheetFocus.pop();if(f&&f.focus)try{f.focus({preventScroll:true})}catch(e){}}}).observe(sh,{attributes:true,attributeFilter:['hidden']})}
+document.addEventListener('keydown',e=>{const sh=[...document.querySelectorAll('.sheet')].find(x=>!x.hidden);if(!sh)return;
+  if(e.key==='Escape'){e.preventDefault();e.stopPropagation();sh.hidden=true;return}
+  if(e.key==='Tab'){const d=sh.firstElementChild,f=[...d.querySelectorAll('button,input,select,textarea,a[href]')].filter(x=>!x.disabled&&x.offsetParent);if(!f.length)return;const a=f[0],b=f[f.length-1];
+    if(e.shiftKey&&(document.activeElement===a||!d.contains(document.activeElement))){e.preventDefault();b.focus()}else if(!e.shiftKey&&document.activeElement===b){e.preventDefault();a.focus()}}},true);
 for(const s of document.querySelectorAll('.sheet'))s.addEventListener('click',e=>{if(e.target===s||e.target.closest('[data-close]'))s.hidden=true});
 document.getElementById('bSet').onclick=()=>{renderGrid();openSheet('sheetSet')};
 function renderGrid(){const gEl=document.getElementById('grid');gEl.textContent='';readColors();renderSetChips();
@@ -1913,7 +1955,7 @@ fileIn.onchange=async()=>{const f=fileIn.files[0];if(!f)return;try{const o=JSON.
   relayout();fit();renderInsp();schedule();msg('Projekt geladen.')}catch(e){msg('Laden fehlgeschlagen: '+e.message)}fileIn.value=''};
 function confirm2(b,fn){if(b.dataset.armed){delete b.dataset.armed;b.textContent=b.dataset.t;fn();return}b.dataset.t=b.textContent;b.dataset.armed=1;b.textContent='Wirklich? Nochmal tippen';setTimeout(()=>{if(b.dataset.armed){delete b.dataset.armed;b.textContent=b.dataset.t}},3000)}
 document.getElementById('bKernReset').onclick=e=>confirm2(e.currentTarget,()=>{pushUndoMeta();S.kern={};S.gkern={};changed(null);msg('Eigenes Kerning gelöscht (Paare und Gruppen). Rückgängig mit ↶.')});
-document.getElementById('bExamples').onclick=()=>{for(const k of Object.keys(examples())){pushUndoFor(k);delete S.glyphs[k];dirty.add('g:'+k)}S.example=false;MC.clear();changed(null);msg('Beispielformen entfernt.')};
+document.getElementById('bExamples').onclick=e=>confirm2(e.currentTarget,()=>{for(const k of Object.keys(examples())){pushUndoFor(k);delete S.glyphs[k];dirty.add('g:'+k)}S.example=false;MC.clear();changed(null);msg('Beispielformen entfernt.')});
 function pushUndoFor(ch){undoS.push(snap(ch));updButtons()}
 
 
@@ -1948,6 +1990,19 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener('change',draw);
 new MutationObserver(draw).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 setTool('brush');
 document.getElementById('bLang').onclick=()=>setLang(LANG==='en'?'de':'en');i18nStart();document.getElementById('bLang').textContent=LANG==='en'?'DE':'EN';
+const VERSION='1.18',REPO='mariokupcevsky/glyphwerk';let fbKind='bug';
+function fbText(){const k=fbKind==='bug'?'Fehler':'Idee',t=document.getElementById('fbTitle').value.trim(),b=document.getElementById('fbBody').value.trim();
+  const g=Object.values(S.glyphs).filter(v=>hasInk(v)).length;
+  return {title:`[${k}] ${t||'(ohne Titel)'}`,body:`${b||'(keine Beschreibung)'}\n\n---\nGlyphwerk ${VERSION} · ${LANG} · ${innerWidth}x${innerHeight} @${devicePixelRatio} · ${g} Glyphen\n${navigator.userAgent}`}}
+function fbPick(k){fbKind=k;document.getElementById('fbBug').setAttribute('aria-pressed',k==='bug');document.getElementById('fbIdea').setAttribute('aria-pressed',k==='idea')}
+document.getElementById('bFb').onclick=()=>{document.getElementById('fbMsg').textContent='';openSheet('sheetFb')};
+document.getElementById('fbBug').onclick=()=>fbPick('bug');document.getElementById('fbIdea').onclick=()=>fbPick('idea');
+document.getElementById('fbSend').onclick=()=>{const f=fbText(),m=document.getElementById('fbMsg');
+  if(!document.getElementById('fbTitle').value.trim()){m.textContent='Bitte kurz beschreiben, worum es geht.';return}
+  const u=`https://github.com/${REPO}/issues/new?title=${encodeURIComponent(f.title)}&body=${encodeURIComponent(f.body.slice(0,6000))}&labels=${fbKind==='bug'?'bug':'enhancement'}`;
+  window.open(u,'_blank','noopener');m.textContent='GitHub wurde geöffnet. Dort noch auf „Submit new issue“ tippen.'};
+document.getElementById('fbCopy').onclick=async()=>{const f=fbText(),m=document.getElementById('fbMsg'),t=f.title+'\n\n'+f.body;
+  try{await navigator.clipboard.writeText(t);m.textContent='Kopiert. Schick den Text an Mario.'}catch(e){m.textContent='Kopieren ging nicht. Markiere den Text selbst.'}};
 const IN_CLAUDE=!!(window.claude&&window.claude.use);
 if(IN_CLAUDE)document.getElementById('feaAI').hidden=false;
 else{document.getElementById('bOTF').textContent='OTF exportieren';
