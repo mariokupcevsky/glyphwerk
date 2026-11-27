@@ -1,0 +1,192 @@
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="brand">Glyphwerk<small id="fontNameLbl">Meine Schrift</small></div>
+    <input id="txt" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Text zum Bearbeiten">
+    <span class="status" id="status">lädt…</span>
+    <div class="grp"><button id="bFile">Datei</button><button id="bGen" aria-pressed="false" title="Schrift aus Regeln erzeugen">Regeln</button><button id="bSet">Zeichensatz</button><button id="bFea">Features</button><button id="bTest">Probetext</button><button id="bExp">Schrift &amp; Export</button><button id="bFb">Feedback</button></div><button id="bPx" class="solid" aria-pressed="false" title="Pixel-Raster">Raster</button><button id="bLang" class="solid" title="Sprache" aria-label="Sprache">EN</button>
+  </header>
+  <div class="stage"><canvas id="cv"></canvas><div class="cleanbar" id="cleanBar"><label for="blurR">Blur</label><input id="blurR" type="range" min="0" max="12" step="0.5" value="0"><b id="blurV" class="num">0</b><button class="solid" id="bCleanX">Zurück (E)</button></div><textarea id="ed" aria-label="Text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" rows="1"></textarea><div class="hint" id="hint"></div>
+    <div class="rail left" aria-label="Navigation">
+      <button id="bPrevG" title="Vorheriger Buchstabe">‹</button>
+      <button id="bNextG" title="Nächster Buchstabe">›</button>
+      <button id="bCtx" title="Buchstaben zwischen n/o oder H/O zeigen">Kontext</button>
+      <select id="selSample" aria-label="Beispieltext" class="sel">
+        <option value="">Text…</option>
+        <option value="@rnd">Zufallstext (alle Zeichen)</option><option value="@rndd">Zufallstext (nur gezeichnete)</option>
+        <option>Hamburgefonstiv</option><option>HAMBURGEFONSTIV</option><option>AVATAR Tokyo LT Vienna</option>
+        <option>abcdefghijklmnopqrstuvwxyz</option><option>ABCDEFGHIJKLMNOPQRSTUVWXYZ</option><option>0123456789</option>
+        <option>Größe Übermaß Ärger öäü</option>
+      </select>
+      <button id="bKbd" title="Tastatur: direkt auf der Fläche tippen">⌨︎ Tippen</button>
+      <button id="bFit">Einpassen</button>
+      <button id="bFocus">Fokus</button>
+    </div>
+    <div class="rail right" aria-label="Ansicht">
+      <button id="bInv" aria-pressed="false" title="Weiß auf Schwarz">Umkehren</button>
+      <button id="bTpl" aria-pressed="true">Vorlage</button>
+      <select id="selTpl" aria-label="Vorlagenschrift" class="sel"></select>
+      <input type="file" id="tplFile" accept=".ttf,.otf,.woff,.woff2,font/*" hidden>
+      <button id="bMet" aria-pressed="true">Maße</button>
+      <button id="bGrid" aria-pressed="true" title="Bézier-Punkte auf 10er-Raster">Raster</button>
+      <button id="bPrev" aria-pressed="false" title="Ohne Punkte ansehen">Vorschau</button>
+      <button id="bClean" title="Nur die Schrift zeigen (Taste E)">Nur Schrift</button>
+      <button id="bMouse" aria-pressed="false" class="fine" title="Mit der Maus auswählen statt zeichnen">Maus wählt</button>
+    </div>
+    <div class="dock" id="tools" role="toolbar" aria-label="Stift">
+      <button data-tool="brush" data-nib="pointed" aria-pressed="true">Spitzfeder</button>
+      <button data-tool="brush" data-nib="broad" aria-pressed="false">Breitfeder</button>
+      <button data-tool="brush" data-nib="brush" aria-pressed="false">Pinsel</button>
+      <button data-tool="brush" data-nib="marker" aria-pressed="false">Marker</button>
+      <button data-tool="select" aria-pressed="false" title="Punkte, Griffe und Striche anfassen, ohne zu zeichnen">↖ Auswahl</button>
+      <button data-tool="pen" aria-pressed="false" title="Punkte setzen, ziehen für Kurve">Bézier</button>
+      <button data-tool="rect" aria-pressed="false" title="Rechteck">▭</button>
+      <button data-tool="ellipse" aria-pressed="false" title="Ellipse">◯</button>
+      <button data-tool="kern" aria-pressed="false" title="Buchstaben seitlich ziehen ändert das Kerning">Kerning</button>
+      <span class="sep"></span>
+      <label class="size"><span>Größe</span><input id="nibSize" type="range" min="10" max="220" step="2"><b id="nibSizeV"></b></label>
+      <label class="size" id="lAng"><span>Neigung</span><input id="nibAng" type="range" min="0" max="180" step="1"><b id="nibAngV"></b></label>
+      <label class="size" id="lOv"><span>Oval</span><input id="nibOv" type="range" min="0" max="85" step="5"><b id="nibOvV"></b></label>
+      <button id="bUndo" title="Rückgängig" aria-label="Rückgängig">↶</button>
+      <button id="bRedo" title="Wiederholen" aria-label="Wiederholen">↷</button>
+    </div>
+    <div class="genp" id="pxPanel" hidden role="group" aria-label="Pixel-Raster">
+      <div class="px-wrap">
+        <div class="px-left"><canvas id="pxCv" aria-label="Raster"></canvas></div>
+        <div class="px-right">
+          <div class="px-bar"><button class="solid" id="pxPrev" aria-label="Vorheriger Buchstabe">‹</button><b id="pxCh" class="num"></b><button class="solid" id="pxNext" aria-label="Nächster Buchstabe">›</button>
+            <button class="solid" id="pxDraw" aria-pressed="true">Malen</button><button class="solid" id="pxErase" aria-pressed="false">Radieren</button>
+            <button class="solid" id="pxUndo" aria-label="Rückgängig">↶</button><button class="solid" id="pxRedo" aria-label="Wiederholen">↷</button></div>
+          <div class="px-bar"><button class="solid" id="pxMir">Spiegeln</button><button class="solid" id="pxSl" aria-label="Nach links">←</button><button class="solid" id="pxSr" aria-label="Nach rechts">→</button><button class="solid" id="pxClr">Leeren</button><button class="solid" id="pxFromDraw" title="Zeichnung auf das Raster übertragen">Aus Zeichnung</button></div>
+          <div class="px-row"><label for="pxR">Pixelrundung</label><input type="range" id="pxR" min="0" max="100"><input type="number" id="pxRn" min="0" max="100" step="1"></div>
+          <div class="px-row"><label for="pxJ">Liquid-Brücke</label><input type="range" id="pxJ" min="0" max="100"><input type="number" id="pxJn" min="0" max="100" step="1"></div>
+          <div class="px-row"><label for="pxG">Zellabstand</label><input type="range" id="pxG" min="0" max="80"><input type="number" id="pxGn" min="0" max="95" step="1"></div>
+          <div class="px-bar"><span class="note">Verbinden</span><span class="seg" role="group" aria-label="Verbinden"><button class="solid" data-pxm="0">Aus</button><button class="solid" data-pxm="1">Waagr.</button><button class="solid" data-pxm="2">Senkr.</button><button class="solid" data-pxm="3">Beides</button></span></div>
+          <div class="px-bar"><label class="note"><input type="checkbox" id="pxOut"> Nur Kontur</label><span class="px-row" style="flex:1"><label for="pxOT">Konturdicke</label><input type="range" id="pxOT" min="5" max="45"></span></div>
+          <div class="px-bar"><label class="note"><input type="checkbox" id="pxDiag"> Diagonal verbinden</label><label class="note"><input type="checkbox" id="pxStretch" checked> Beim Ändern der Größe strecken</label></div>
+          <div class="px-bar"><span class="px-step"><button class="solid" data-pxs="c-">−</button><b id="pxCols" class="num"></b><button class="solid" data-pxs="c+">+</button><span class="note">Spalten</span><button class="solid" data-pxs="r-">−</button><b id="pxRows" class="num"></b><button class="solid" data-pxs="r+">+</button><span class="note">Zeilen</span></span><button class="solid" id="pxStarter">Starter-Alphabet</button><button class="solid" id="pxRand">Zufallssymbol</button><button class="solid" id="pxNew">+ Symbol</button><button class="primary" id="pxDone">Fertig</button></div>
+          <div class="msg" id="pxMsg" role="status"></div>
+        </div>
+      </div>
+    </div>
+    <div class="genp" id="genPanel" hidden role="group" aria-label="Schrift aus Regeln">
+      <div class="gp-grid">
+        <label><span>Stärke <b id="gWv"></b></span><input type="range" id="gW" min="16" max="220" step="2"></label>
+        <label><span>Kontrast <b id="gCv"></b></span><input type="range" id="gC" min="0" max="90" step="1"></label>
+        <label><span>Federwinkel <b id="gAv"></b></span><input type="range" id="gA" min="-60" max="90" step="1"></label>
+        <label><span>Breite <b id="gWdv"></b></span><input type="range" id="gWd" min="60" max="150" step="1"></label>
+        <label><span>x-Höhe <b id="gXv"></b></span><input type="range" id="gX" min="380" max="650" step="5"></label>
+        <label><span>Versalhöhe <b id="gCapv"></b></span><input type="range" id="gCap" min="560" max="850" step="5"></label>
+        <label><span>Schulterhöhe (n, h, m) <b id="gShv"></b></span><input type="range" id="gSh" min="30" max="65" step="1"></label>
+        <label><span>Überschwinger <b id="gOvv"></b></span><input type="range" id="gOv" min="0" max="40" step="1"></label>
+        <label><span>Breite Versalien <b id="gWcv"></b></span><input type="range" id="gWc" min="70" max="130" step="1"></label>
+        <label><span>Breite Ziffern <b id="gWfv"></b></span><input type="range" id="gWf" min="70" max="130" step="1"></label>
+        <label><span>Kurven rund → kantig <b id="gRv"></b></span><input type="range" id="gR" min="0" max="100" step="1"></label>
+        <label><span>Neigung <b id="gSv"></b></span><input type="range" id="gS" min="-5" max="18" step="1"></label>
+      </div>
+      <div class="gp-act">
+        <button id="gEnd" class="solid" aria-pressed="false">Enden flach</button>
+        <button id="gAll" class="solid" aria-pressed="false" title="Auch Buchstaben ersetzen, die du selbst gezeichnet hast">Gezeichnete ersetzen</button>
+        <button id="gReset" class="solid">Standard</button>
+        <span class="grow"></span>
+        <button id="gCancel" class="solid">Verwerfen</button>
+        <button id="gOk" class="primary">Übernehmen</button>
+      </div>
+    </div>
+  </div>
+  <div id="inspTabs" role="tablist" aria-label="Bereich" class="tabs"></div>
+  <button id="inspTgl" aria-expanded="true" aria-controls="insp">Details <span aria-hidden="true">▾</span></button>
+  <div id="insp"></div>
+</div>
+
+<div class="sheet" id="sheetSet" hidden><div>
+  <h2>Zeichensatz <button class="solid" data-close>Schließen</button></h2>
+  <p class="note">Tippe einen Buchstaben an, um ihn im Text zu bearbeiten. Blasse Felder sind noch nicht gezeichnet. Akzente und Kyrillisch/Griechisch, das wie Latein aussieht, entstehen automatisch aus deinen Buchstaben.</p>
+  <div class="row" id="setChips" aria-label="Zeichensätze"></div>
+  <div class="row"><input id="csName" type="text" maxlength="30" placeholder="Name, z. B. Pfeile" style="max-width:160px"><input id="csChars" type="text" placeholder="Zeichen oder U+2190-U+2193" style="flex:1;min-width:140px"><button class="solid" id="csAdd">Eigenen Satz anlegen</button></div>
+  <div class="msg" id="csMsg" role="status"></div>
+  <div class="grid" id="grid"></div>
+</div></div>
+
+<div class="sheet" id="sheetFea" hidden><div>
+  <h2>OpenType-Features <button class="solid" data-close>Schließen</button></h2>
+  <p class="note">Wie in Glyphs entstehen viele Features aus dem Namen. Tippe im Textfeld <b>/a.ss01</b> und ein Leerzeichen, dann zeichnest du diese Variante direkt in der Zeile. <b>.ss01</b> bis <b>.ss20</b> werden Stilsets, <b>.sc</b> Kapitälchen, <b>.alt</b> Alternativen, <b>.onum</b> Mediävalziffern, <b>f_i</b> eine Ligatur.</p>
+  <p class="note">Handschrift: Bei einem Buchstaben unter „Varianten“ legt „+ Wechsel-Variante“ e.r1 an (dann e.r2 …). Im Text wechseln sich die Formen automatisch ab, so sieht ee nie gleich aus. „+ Kontext-Variante“ legt H.ctx1 an: Du trägst ein, vor oder nach welchen Buchstaben sie kommt (z. B. H vor a). „+ Ligatur“ macht aus zwei Buchstaben eine Verbindung, die im Text automatisch erscheint.</p>
+  <div class="ai" id="feaAI" hidden>
+    <label for="feaAsk">Was soll passieren?</label>
+    <textarea id="feaAsk" rows="2" placeholder="z. B. Am Wortende soll ein anderes g stehen"></textarea>
+    <div class="row" style="margin:6px 0 0"><button class="primary" id="bFeaAI">Claude schreibt den Code</button><span class="msg" id="feaAIMsg" role="status" style="margin:0"></span></div>
+  </div>
+  <h3>Eigener Code</h3>
+  <textarea id="feaCode" class="code" rows="10" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="feature calt {&#10;  ignore sub g' @letters;&#10;  sub g' by g.fina;&#10;} calt;"></textarea>
+  <div class="msg" id="feaMsg" role="status"></div>
+  <div id="feaMissing" class="row"></div>
+  <h3><label><input type="checkbox" id="feaAuto" checked> Automatisch aus den Namen</label></h3>
+  <pre id="feaAutoCode" class="code"></pre>
+</div></div>
+
+<div class="sheet" id="sheetTest" hidden><div>
+  <h2>Probetext <button class="solid" data-close>Schließen</button></h2>
+  <div class="row"><button class="solid" id="tTTF" aria-pressed="true">TTF</button><button class="solid" id="tOTF" aria-pressed="false">OTF</button>
+    <label for="tSize" style="min-width:0">Größe</label><input id="tSize" type="range" min="16" max="160" value="64"></div>
+  <div class="row"><label for="tTrack" style="min-width:0">Tracking</label><input id="tTrack" type="range" min="-10" max="40" value="0"><label for="tLead" style="min-width:0">Zeilenabstand</label><input id="tLead" type="range" min="80" max="200" value="125"><label style="min-width:0">Tinte <input id="tInk" type="color" value="#111111"></label><label style="min-width:0">Papier <input id="tPaper" type="color" value="#ffffff"></label></div>
+  <p class="note">Hier läuft die exportierte Datei durch die Schrift-Engine von Safari, dieselbe wie in Pages, Notizen oder Keynote. Was hier stimmt, stimmt dort auch. Tippe einfach in das Feld.</p>
+  <div class="row" id="tFeat" aria-label="OpenType-Features"></div>
+  <textarea id="tArea" spellcheck="false" style="width:100%;min-height:220px;box-sizing:border-box;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--bg);color:var(--ink);line-height:1.25"></textarea>
+  <div class="msg" id="tMsg" role="status"></div>
+</div></div>
+
+<div class="sheet" id="sheetExp" hidden><div>
+  <h2>Schrift &amp; Export <button class="solid" data-close>Schließen</button></h2>
+  <div class="row"><label for="fName">Name der Schrift</label><input id="fName" type="text" maxlength="40"></div>
+  <div class="row"><label for="fSp">Grundabstand <span class="num" id="fSpV"></span></label><input id="fSp" type="range" min="10" max="160" step="1"></div>
+  <div class="row"><label for="fKs">Auto-Kerning <span class="num" id="fKsV"></span></label><input id="fKs" type="range" min="0" max="150" step="5"></div>
+  <h3>Maße</h3>
+  <p class="note">Gelten für die ganze Schrift: Hilfslinien, Akzente, Abstände und die Regeln-Buchstaben richten sich danach. Selbst gezeichnete Buchstaben bleiben, wie sie sind.</p>
+  <div class="row"><label for="mXH">x-Höhe <span class="num" id="mXHv"></span></label><input id="mXH" type="range" min="350" max="650" step="5"></div>
+  <div class="row"><label for="mCAP">Versalhöhe <span class="num" id="mCAPv"></span></label><input id="mCAP" type="range" min="560" max="850" step="5"></div>
+  <div class="row"><label for="mASC">Oberlänge <span class="num" id="mASCv"></span></label><input id="mASC" type="range" min="650" max="950" step="5"></div>
+  <div class="row"><label for="mDESC">Unterlänge <span class="num" id="mDESCv"></span></label><input id="mDESC" type="range" min="-400" max="-100" step="5"></div>
+  <div class="row"><button class="solid" id="mReset">Standardmaße</button></div>
+  <div class="row"><label><input type="checkbox" id="fMono"> Monospace</label><label for="fMw">Breite <span class="num" id="fMwV"></span></label><input id="fMw" type="range" min="300" max="1000" step="10"></div>
+  <p class="note" id="fMonoNote">Monospace: Jedes Zeichen bekommt dieselbe Breite und steht mittig in seiner Zelle, wie bei Code-Schriften. Kerning ist dann aus. Zu breite Zeichen werden rot umrandet.</p>
+  <p class="note">Grundabstand ist der Abstand an geraden Kanten (Einheiten von 1000 pro Geviert). Runde und schräge Formen bekommen automatisch weniger. Auto-Kerning rechnet für jedes Buchstabenpaar aus, wo die Formen sich am nächsten kommen: lockere Paare wie AV oder To rücken zusammen, Paare, die sich berühren würden, rücken auseinander. Umlaute und Akzente entstehen automatisch aus Grundbuchstabe und Akzentzeichen (¨ ´ ` ˆ ˜ ˚ ¸ ˇ), bis du sie selbst zeichnest. Im Kerning-Werkzeug gibt es drei Ebenen: Abstand, Gruppe, Paar. Paar geht vor Gruppe, Gruppe vor Automatik.</p>
+  <div class="row">
+    <button class="primary" id="bTTF">TTF exportieren</button>
+    <button class="primary" id="bOTF">OTF exportieren (.zip)</button>
+    <button class="solid" id="bBackup">Projekt sichern (.json)</button>
+    <button class="solid" id="bLoad">Projekt laden</button>
+    <input type="file" id="fileIn" accept=".json,application/json" hidden>
+  </div>
+  <div class="row">
+    <button class="solid" id="bKernReset">Eigenes Kerning löschen</button>
+    <button class="solid" id="bExamples">Beispielformen entfernen</button> <button class="solid" id="bExLoad">Beispielformen laden</button>
+  </div>
+  <div class="msg" id="expMsg" role="status"></div>
+  <p class="note">Die OTF kommt als ZIP, weil claude.ai .otf-Dateien nicht direkt speichern lässt. In der Dateien-App einmal antippen, dann liegt die OTF daneben. Damit Pages, Notizen oder Word auf dem iPad die Schrift nutzen, muss sie installiert werden, zum Beispiel mit einer Schrift-Installations-App aus dem App Store. Auf Mac und Windows reicht ein Doppelklick auf die Datei.</p>
+</div></div>
+
+<div class="sheet" id="sheetFile" hidden><div>
+  <h2>Datei <button class="solid" data-close>Schließen</button></h2>
+  <div class="row"><button class="primary" id="fNew">Neue Schrift (leer)</button></div>
+  <div class="row"><button class="solid" id="fOpen">Projekt öffnen (.json)</button><button class="solid" id="fSave">Projekt speichern (.json)</button></div>
+  <div class="row"><button class="solid" id="fDup">Duplizieren</button><button class="solid" id="fExp">Exportieren (TTF/OTF)</button></div>
+  <div class="row"><button class="solid" id="fRestore" hidden>Vorheriges Projekt wiederherstellen</button></div>
+  <p class="note">„Neu“ und „Öffnen“ ersetzen das aktuelle Projekt. Das bisherige wird zuerst zur Sicherheit zurückgelegt und lässt sich hier wiederherstellen. „Duplizieren“ lädt eine Kopie als Datei herunter und du arbeitest als „… Kopie“ weiter. Alles wird laufend im Browser gespeichert.</p>
+  <div class="msg" id="fileMsg" role="status"></div>
+</div></div>
+<div class="sheet" id="sheetFb" hidden><div>
+  <h2>Fehler melden oder Idee senden <button class="solid" data-close>Schließen</button></h2>
+  <div class="row"><span class="seg" role="group" aria-label="Art"><button class="solid" id="fbBug" aria-pressed="true">Fehler</button><button class="solid" id="fbIdea" aria-pressed="false">Idee</button></span></div>
+  <div class="row"><label for="fbTitle">Kurz</label><input type="text" id="fbTitle" maxlength="100" placeholder="z. B. Stift setzt aus beim Zoomen"></div>
+  <div class="row"><label for="fbBody">Beschreibung</label><textarea id="fbBody" rows="5" style="flex:1;min-width:0;font:15px var(--f-ui);padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)" placeholder="Was hast du gemacht, was ist passiert, was hättest du erwartet?"></textarea></div>
+  <p class="note">Mitgesendet werden nur Version, Browser, Bildschirmgröße und Sprache. Keine Schrift und keine Glyphen.</p>
+  <div class="row"><button class="primary" id="fbSend">Auf GitHub senden</button><button class="solid" id="fbCopy">Text kopieren</button></div>
+  <p class="note">„Auf GitHub senden“ öffnet ein vorausgefülltes Ticket. Dafür brauchst du ein GitHub-Konto. Ohne Konto: „Text kopieren“ und an Mario schicken.</p>
+  <div class="msg" id="fbMsg" role="status"></div>
+</div></div>
+
+<script>
+'use strict';
