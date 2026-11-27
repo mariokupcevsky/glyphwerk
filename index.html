@@ -65,8 +65,22 @@ pre.code{min-height:2.5em;max-height:220px}
 .ai label{font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
 .ai textarea{width:100%;box-sizing:border-box;font:15px var(--f-ui);border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--surface);color:var(--ink)}
 #tFeat label{display:flex;gap:4px;align-items:center;font:13px var(--f-mono);color:var(--ink);min-width:0}
-.genp{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom,0px));width:min(760px,calc(100% - 20px));box-sizing:border-box;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 4px 18px rgb(0 0 0 / .12);padding:10px 12px;z-index:2}
+.genp{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom,0px));width:min(820px,calc(100% - 20px));box-sizing:border-box;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 4px 18px rgb(0 0 0 / .12);padding:10px 12px;z-index:2}
 .genp[hidden]{display:none}
+.px-wrap{display:flex;gap:14px;flex-wrap:nowrap;align-items:flex-start}
+@media (max-width:640px){.px-wrap{flex-wrap:wrap}}
+.px-left{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.px-bar{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+.px-bar button,.px-step button{min-height:36px;min-width:36px;padding:4px 9px}
+#pxPanel{padding:8px 10px}#pxPanel .msg{margin:0;min-height:1.2em;font-size:12px}
+#pxCv{touch-action:none;background:var(--bg);border:1px solid var(--line);border-radius:8px;max-width:100%}
+.px-right{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.px-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.px-row label{min-width:6.8em;font-size:13px;color:var(--muted)}
+.px-row input[type=range]{flex:1;min-width:110px}
+.px-row input[type=number]{width:4.2em;font:500 14px var(--f-mono);padding:6px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+.px-row input.bad{border-color:#d33}
+.px-step{display:flex;gap:6px;align-items:center}
 .gp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:4px 14px}
 .gp-grid label{display:flex;flex-direction:column;gap:2px;font-size:12px;color:var(--muted)}
 .gp-grid label span{display:flex;justify-content:space-between}
@@ -75,7 +89,7 @@ pre.code{min-height:2.5em;max-height:220px}
 .gp-act{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}
 .gp-act .grow{flex:1}
 .stage.gen .dock{display:none}
-body.clean header,body.clean .rail,body.clean .dock,body.clean #insp,body.clean .hint,body.clean .genp{display:none!important}
+body.clean header,body.clean .rail,body.clean .dock,body.clean #insp,body.clean .hint,body.clean .genp,body.clean #pxPanel{display:none!important}
 body.clean .stage{border-color:transparent}
 .cleanbar{position:absolute;right:10px;top:10px;display:none;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px 8px;font-size:12px;color:var(--muted);opacity:.85}
 body.clean .cleanbar{display:flex}
@@ -138,7 +152,7 @@ body.clean .cleanbar{display:flex}
     <div class="brand">Glyphwerk<small id="fontNameLbl">Meine Schrift</small></div>
     <input id="txt" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Text zum Bearbeiten">
     <span class="status" id="status">lädt…</span>
-    <div class="grp"><button id="bGen" aria-pressed="false" title="Schrift aus Regeln erzeugen">Regeln</button><button id="bSet">Zeichensatz</button><button id="bFea">Features</button><button id="bTest">Probetext</button><button id="bExp">Schrift &amp; Export</button><button id="bFb">Feedback</button></div><button id="bLang" class="solid" title="Sprache" aria-label="Sprache">EN</button>
+    <div class="grp"><button id="bGen" aria-pressed="false" title="Schrift aus Regeln erzeugen">Regeln</button><button id="bSet">Zeichensatz</button><button id="bFea">Features</button><button id="bTest">Probetext</button><button id="bExp">Schrift &amp; Export</button><button id="bFb">Feedback</button></div><button id="bPx" class="solid" aria-pressed="false" title="Pixel-Raster">Raster</button><button id="bLang" class="solid" title="Sprache" aria-label="Sprache">EN</button>
   </header>
   <div class="stage"><canvas id="cv"></canvas><div class="cleanbar" id="cleanBar"><label for="blurR">Blur</label><input id="blurR" type="range" min="0" max="12" step="0.5" value="0"><b id="blurV" class="num">0</b><button class="solid" id="bCleanX">Zurück (E)</button></div><textarea id="ed" aria-label="Text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" rows="1"></textarea><div class="hint" id="hint"></div>
     <div class="rail left" aria-label="Navigation">
@@ -183,6 +197,24 @@ body.clean .cleanbar{display:flex}
       <label class="size" id="lOv"><span>Oval</span><input id="nibOv" type="range" min="0" max="85" step="5"><b id="nibOvV"></b></label>
       <button id="bUndo" title="Rückgängig" aria-label="Rückgängig">↶</button>
       <button id="bRedo" title="Wiederholen" aria-label="Wiederholen">↷</button>
+    </div>
+    <div class="genp" id="pxPanel" hidden role="group" aria-label="Pixel-Raster">
+      <div class="px-wrap">
+        <div class="px-left"><canvas id="pxCv" aria-label="Raster"></canvas></div>
+        <div class="px-right">
+          <div class="px-bar"><button class="solid" id="pxPrev" aria-label="Vorheriger Buchstabe">‹</button><b id="pxCh" class="num"></b><button class="solid" id="pxNext" aria-label="Nächster Buchstabe">›</button>
+            <button class="solid" id="pxDraw" aria-pressed="true">Malen</button><button class="solid" id="pxErase" aria-pressed="false">Radieren</button>
+            <button class="solid" id="pxUndo" aria-label="Rückgängig">↶</button><button class="solid" id="pxRedo" aria-label="Wiederholen">↷</button></div>
+          <div class="px-bar"><button class="solid" id="pxMir">Spiegeln</button><button class="solid" id="pxSl" aria-label="Nach links">←</button><button class="solid" id="pxSr" aria-label="Nach rechts">→</button><button class="solid" id="pxClr">Leeren</button><button class="solid" id="pxFromDraw" title="Zeichnung auf das Raster übertragen">Aus Zeichnung</button></div>
+          <div class="px-row"><label for="pxR">Pixelrundung</label><input type="range" id="pxR" min="0" max="100"><input type="number" id="pxRn" min="0" max="100" step="1"></div>
+          <div class="px-row"><label for="pxJ">Liquid-Brücke</label><input type="range" id="pxJ" min="0" max="100"><input type="number" id="pxJn" min="0" max="100" step="1"></div>
+          <div class="px-row"><label for="pxG">Zellabstand</label><input type="range" id="pxG" min="0" max="80"><input type="number" id="pxGn" min="0" max="95" step="1"></div>
+          <div class="px-bar"><span class="note">Verbinden</span><span class="seg" role="group" aria-label="Verbinden"><button class="solid" data-pxm="0">Aus</button><button class="solid" data-pxm="1">Waagr.</button><button class="solid" data-pxm="2">Senkr.</button><button class="solid" data-pxm="3">Beides</button></span></div>
+          <div class="px-bar"><span class="px-step"><button class="solid" data-pxs="c-">−</button><b id="pxCols" class="num"></b><button class="solid" data-pxs="c+">+</button><span class="note">Spalten</span><button class="solid" data-pxs="r-">−</button><b id="pxRows" class="num"></b><button class="solid" data-pxs="r+">+</button><span class="note">Zeilen</span></span><button class="solid" id="pxStarter">Starter-Alphabet</button><button class="primary" id="pxDone">Fertig</button></div>
+          <div class="msg" id="pxMsg" role="status"></div>
+        </div>
+      </div>
+      </div>
     </div>
     <div class="genp" id="genPanel" hidden role="group" aria-label="Schrift aus Regeln">
       <div class="gp-grid">
@@ -330,7 +362,7 @@ let tool='brush',inv=false,mouseSel=false,selStroke=null,selK=new Set(),selMode=
 try{inv=localStorage.getItem('glyphwerk.inv')==='1'}catch(e){}
 let LANG='de';try{LANG=localStorage.getItem('glyphwerk.lang')||((navigator.language||'de').toLowerCase().startsWith('de')?'de':'en')}catch(e){LANG=(navigator.language||'de').toLowerCase().startsWith('de')?'de':'en'}
 /* ---------- language: UI is written in German; English comes from this table (exact strings) and the patterns below ---------- */
-const I18N={'Maße':'Metrics','Gelten für die ganze Schrift: Hilfslinien, Akzente, Abstände und die Regeln-Buchstaben richten sich danach. Selbst gezeichnete Buchstaben bleiben, wie sie sind.':'These apply to the whole font: guides, accents, spacing and the rules-generated letters follow them. Letters you drew yourself stay as they are.','Standardmaße':'Default metrics','Versalhöhe':'Cap height','Oberlänge':'Ascender','Unterlänge':'Descender','Schulterhöhe (n, h, m)':'Shoulder height (n, h, m)','Überschwinger':'Overshoot','Breite Versalien':'Capital width','Breite Ziffern':'Figure width','Ganze Glyphe löschen':'Delete whole glyph','Glyphe gelöscht. Rückgängig mit ↶.':'Glyph deleted. Undo with ↶.','Beispielformen laden':'Load example shapes','Beispielformen geladen (H T A V O n o ¨ ´).':'Example shapes loaded (H T A V O n o ¨ ´).','Die Beispielformen sind schon da.':'The example shapes are already there.','Feedback':'Feedback','Fehler melden oder Idee senden':'Report a bug or send an idea','Fehler':'Bug','Idee':'Idea','Kurz':'Summary','Beschreibung':'Description','Auf GitHub senden':'Send on GitHub','Text kopieren':'Copy text','Glyphe':'Glyph','Glyphe':'Glyph','Abstand':'Spacing','Absatz':'Paragraph','Mitgesendet werden nur Version, Browser, Bildschirmgröße und Sprache. Keine Schrift und keine Glyphen.':'Only version, browser, screen size and language are sent. No font and no glyphs.','„Auf GitHub senden“ öffnet ein vorausgefülltes Ticket. Dafür brauchst du ein GitHub-Konto. Ohne Konto: „Text kopieren“ und an Mario schicken.':'“Send on GitHub” opens a prefilled ticket. You need a GitHub account for that. Without one: “Copy text” and send it to Mario.','Hier gibt es für die aktuelle Auswahl nichts einzustellen.':'Nothing to adjust for the current selection.','Bitte kurz beschreiben, worum es geht.':'Please add a short summary.','GitHub wurde geöffnet. Dort noch auf „Submit new issue“ tippen.':'GitHub opened. Tap “Submit new issue” there.','Kopiert. Schick den Text an Mario.':'Copied. Send the text to Mario.','OTF exportieren':'Export OTF','Die OTF wird direkt heruntergeladen. Damit Pages, Notizen oder Word auf dem iPad die Schrift nutzen, muss sie installiert werden, zum Beispiel mit einer Schrift-Installations-App aus dem App Store. Auf Mac und Windows reicht ein Doppelklick auf die Datei.':'The OTF downloads directly. To use the font in Pages, Notes or Word on iPad it has to be installed, for example with a font installer app from the App Store. On Mac and Windows, double-click the file.','Details':'Details','Speichern im Browser fehlgeschlagen (Speicher voll?). Bitte „Projekt sichern (.json)“ unter Schrift & Export nutzen.':'Saving in the browser failed (storage full?). Please use “Back up project (.json)” under Font & Export.','Vereinfachen':'Simplify',
+const I18N={'Raster':'Grid','Pixelrundung':'Pixel roundness','Liquid-Brücke':'Liquid bridge','Zellabstand':'Cell gap','Verbinden':'Join','Aus':'Off','Waagr.':'Horiz.','Senkr.':'Vert.','Beides':'Both','Spalten':'Columns','Zeilen':'Rows','Malen':'Paint','Radieren':'Erase','Spiegeln':'Mirror','Leeren':'Clear','Aus Zeichnung':'From drawing','Starter-Alphabet':'Starter alphabet','Fertig':'Done','Maße':'Metrics','Gelten für die ganze Schrift: Hilfslinien, Akzente, Abstände und die Regeln-Buchstaben richten sich danach. Selbst gezeichnete Buchstaben bleiben, wie sie sind.':'These apply to the whole font: guides, accents, spacing and the rules-generated letters follow them. Letters you drew yourself stay as they are.','Standardmaße':'Default metrics','Versalhöhe':'Cap height','Oberlänge':'Ascender','Unterlänge':'Descender','Schulterhöhe (n, h, m)':'Shoulder height (n, h, m)','Überschwinger':'Overshoot','Breite Versalien':'Capital width','Breite Ziffern':'Figure width','Ganze Glyphe löschen':'Delete whole glyph','Glyphe gelöscht. Rückgängig mit ↶.':'Glyph deleted. Undo with ↶.','Beispielformen laden':'Load example shapes','Beispielformen geladen (H T A V O n o ¨ ´).':'Example shapes loaded (H T A V O n o ¨ ´).','Die Beispielformen sind schon da.':'The example shapes are already there.','Feedback':'Feedback','Fehler melden oder Idee senden':'Report a bug or send an idea','Fehler':'Bug','Idee':'Idea','Kurz':'Summary','Beschreibung':'Description','Auf GitHub senden':'Send on GitHub','Text kopieren':'Copy text','Glyphe':'Glyph','Glyphe':'Glyph','Abstand':'Spacing','Absatz':'Paragraph','Mitgesendet werden nur Version, Browser, Bildschirmgröße und Sprache. Keine Schrift und keine Glyphen.':'Only version, browser, screen size and language are sent. No font and no glyphs.','„Auf GitHub senden“ öffnet ein vorausgefülltes Ticket. Dafür brauchst du ein GitHub-Konto. Ohne Konto: „Text kopieren“ und an Mario schicken.':'“Send on GitHub” opens a prefilled ticket. You need a GitHub account for that. Without one: “Copy text” and send it to Mario.','Hier gibt es für die aktuelle Auswahl nichts einzustellen.':'Nothing to adjust for the current selection.','Bitte kurz beschreiben, worum es geht.':'Please add a short summary.','GitHub wurde geöffnet. Dort noch auf „Submit new issue“ tippen.':'GitHub opened. Tap “Submit new issue” there.','Kopiert. Schick den Text an Mario.':'Copied. Send the text to Mario.','OTF exportieren':'Export OTF','Die OTF wird direkt heruntergeladen. Damit Pages, Notizen oder Word auf dem iPad die Schrift nutzen, muss sie installiert werden, zum Beispiel mit einer Schrift-Installations-App aus dem App Store. Auf Mac und Windows reicht ein Doppelklick auf die Datei.':'The OTF downloads directly. To use the font in Pages, Notes or Word on iPad it has to be installed, for example with a font installer app from the App Store. On Mac and Windows, double-click the file.','Details':'Details','Speichern im Browser fehlgeschlagen (Speicher voll?). Bitte „Projekt sichern (.json)“ unter Schrift & Export nutzen.':'Saving in the browser failed (storage full?). Please use “Back up project (.json)” under Font & Export.','Vereinfachen':'Simplify',
 '▭ Rechteck':'▭ Rectangle','Lasso':'Lasso','Auswahl':'Selection','Mit dem Stift ins Leere ziehen wählt aus. Ausgewähltes ziehen verschiebt es.':'Drag with the pen on empty space to select. Drag the selection to move it.',
 '↖ Auswahl':'↖ Select','Punkte, Griffe und Striche anfassen, ohne zu zeichnen':'Grab points, handles and strokes without drawing','Auswahl: Punkte, Griffe, Konturen und Striche antippen und ziehen. Nichts wird gezeichnet.':'Select: tap and drag points, handles, contours and strokes. Nothing gets drawn.','Punkte reduzieren':'Reduce points','Weniger Punkte geht nicht, ohne die Form zu verändern.':'Fewer points are not possible without changing the shape.','Kontur':'contour','Konturen':'contours',
 'Handschrift: Bei einem Buchstaben unter „Varianten“ legt „+ Wechsel-Variante“ e.r1 an (dann e.r2 …). Im Text wechseln sich die Formen automatisch ab, so sieht ee nie gleich aus. „+ Kontext-Variante“ legt H.ctx1 an: Du trägst ein, vor oder nach welchen Buchstaben sie kommt (z. B. H vor a). „+ Ligatur“ macht aus zwei Buchstaben eine Verbindung, die im Text automatisch erscheint.':'Handwriting: on a letter, under “Variants”, “+ Alternating variant” creates e.r1 (then e.r2 …). In text the forms alternate automatically, so ee never looks the same. “+ Context variant” creates H.ctx1: enter before or after which letters it appears (e.g. H before a). “+ Ligature” turns two letters into one connected glyph that appears automatically in text.',
@@ -454,6 +486,74 @@ function poly(a){const p=[];for(let k=0;k<a.length;k+=2)p.push(P(a[k],a[k+1]));r
 function ellipse(cx,cy,rx,ry){const k=.5523;return {z:true,p:[
   P(cx+rx,cy,[cx+rx,cy-ry*k],[cx+rx,cy+ry*k],1),P(cx,cy+ry,[cx+rx*k,cy+ry],[cx-rx*k,cy+ry],1),
   P(cx-rx,cy,[cx-rx,cy+ry*k],[cx-rx,cy-ry*k],1),P(cx,cy-ry,[cx-rx*k,cy-ry],[cx+rx*k,cy-ry],1)]}}
+/* PXGEO-BEGIN: pixel-grid -> outline (cell units, y down). Original implementation. */
+function pxOutline(on,cols,rows,par){
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const g=clamp(+par.gap||0,0,95)/100,flush=g<1e-6,mh=!!par.mh,mv=!!par.mv;
+  const body=1-g,pr=clamp(+par.r||0,0,100)/100,pj=clamp(+par.j||0,0,100)/100;
+  let rho=pr*body/2,jr=pj*body/2;
+  const wmin=Math.max(.3*body,1e-3),avail=body-wmin;
+  if(2*(rho+jr)>avail)jr=Math.max(0,avail/2-rho);
+  const wn=Math.max(wmin,body-2*(rho+jr));
+  const O=(c,r)=>c>=0&&r>=0&&c<cols&&r<rows&&!!on[r][c];
+  const R=[];// rectangles x0,x1,y0,y1
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){if(!on[r][c])continue;
+    R.push(flush?[c,c+1,r,r+1]:[c+g/2,c+1-g/2,r+g/2,r+1-g/2]);
+    if(flush)continue;
+    if(mh&&O(c+1,r))R.push([c+1-g/2,c+1+g/2,r+.5-wn/2,r+.5+wn/2]);
+    if(mv&&O(c,r+1))R.push([c+.5-wn/2,c+.5+wn/2,r+1-g/2,r+1+g/2]);
+    if(mh&&mv&&O(c+1,r)&&O(c,r+1)&&O(c+1,r+1))R.push([c+1-g/2,c+1+g/2,r+1-g/2,r+1+g/2])}
+  if(!R.length)return [];
+  const q=v=>Math.round(v*1e6)/1e6,ux=new Set(),uy=new Set();
+  for(const a of R){ux.add(q(a[0]));ux.add(q(a[1]));uy.add(q(a[2]));uy.add(q(a[3]))}
+  const xs=[...ux].sort((a,b)=>a-b),ys=[...uy].sort((a,b)=>a-b),W=xs.length-1,H=ys.length-1;
+  const xi=new Map(xs.map((v,i)=>[v,i])),yi=new Map(ys.map((v,i)=>[v,i]));
+  const F=Array.from({length:H},()=>new Uint8Array(W));
+  for(const a of R){const i0=xi.get(q(a[0])),i1=xi.get(q(a[1])),j0=yi.get(q(a[2])),j1=yi.get(q(a[3]));
+    for(let j=j0;j<j1;j++)for(let i=i0;i<i1;i++)F[j][i]=1}
+  const f=(i,j)=>i>=0&&j>=0&&i<W&&j<H&&F[j][i]===1;
+  // directed boundary edges, filled area on the right (clockwise on screen, y down)
+  const out=new Map(),key=(i,j)=>i*(H+1)+j,add=(a,b,c,d)=>{const k=key(a,b);if(!out.has(k))out.set(k,[]);out.get(k).push([c,d])};
+  for(let j=0;j<H;j++)for(let i=0;i<W;i++){if(!F[j][i])continue;
+    if(!f(i,j-1))add(i,j,i+1,j);
+    if(!f(i+1,j))add(i+1,j,i+1,j+1);
+    if(!f(i,j+1))add(i+1,j+1,i,j+1);
+    if(!f(i-1,j))add(i,j+1,i,j)}
+  const loops=[];
+  for(const [k0,lst0] of out){
+    while(lst0.length){
+      let [i,j]=[Math.floor(k0/(H+1)),k0%(H+1)];const si=i,sj=j;let nx=lst0.pop();const pts=[[i,j]];let dir=[nx[0]-i,nx[1]-j];i=nx[0];j=nx[1];
+      let guard=0;
+      while(!(i===si&&j===sj)&&guard++<1e6){pts.push([i,j]);const l=out.get(key(i,j));if(!l||!l.length)break;
+        const rt=[-dir[1],dir[0]];let pick=0,best=-9;
+        for(let t=0;t<l.length;t++){const d=[l[t][0]-i,l[t][1]-j];const sc=(d[0]===rt[0]&&d[1]===rt[1])?3:(d[0]===dir[0]&&d[1]===dir[1])?2:1;if(sc>best){best=sc;pick=t}}
+        nx=l.splice(pick,1)[0];dir=[nx[0]-i,nx[1]-j];i=nx[0];j=nx[1]}
+      loops.push(pts)}}
+  const res=[];
+  for(const lp of loops){
+    // to coordinates, drop collinear
+    let P=lp.map(([i,j])=>[xs[i],ys[j]]);
+    let ch=true;while(ch&&P.length>=4){ch=false;const n=P.length,keep=[];
+      for(let k=0;k<n;k++){const a=P[(k+n-1)%n],b=P[k],c=P[(k+1)%n];const cr=(b[0]-a[0])*(c[1]-b[1])-(b[1]-a[1])*(c[0]-b[0]);
+        if(Math.abs(cr)<1e-9)ch=true;else keep.push(b)}
+      P=keep}
+    const n=P.length;if(n<3)continue;
+    const cv=[],len=[],rad=[];
+    for(let k=0;k<n;k++){const a=P[(k+n-1)%n],b=P[k],c=P[(k+1)%n];
+      const cr=(b[0]-a[0])*(c[1]-b[1])-(b[1]-a[1])*(c[0]-b[0]);cv.push(cr>0);
+      len.push(Math.hypot(c[0]-b[0],c[1]-b[1]));rad.push(cr>0?rho:jr)}
+    const fe=len.map((L,k)=>{const s=rad[k]+rad[(k+1)%n];return s>L&&s>0?L/s:1});
+    const fr=rad.map((r0,k)=>r0*Math.min(fe[k],fe[(k+n-1)%n]));
+    const pts=[],K=.5523;
+    for(let k=0;k<n;k++){const a=P[(k+n-1)%n],b=P[k],c=P[(k+1)%n],r0=fr[k];
+      if(r0<1e-6){pts.push({x:b[0],y:b[1],i:null,o:null});continue}
+      const d1=Math.hypot(a[0]-b[0],a[1]-b[1]),d2=Math.hypot(c[0]-b[0],c[1]-b[1]);
+      const t1=[b[0]+(a[0]-b[0])/d1*r0,b[1]+(a[1]-b[1])/d1*r0],t2=[b[0]+(c[0]-b[0])/d2*r0,b[1]+(c[1]-b[1])/d2*r0];
+      pts.push({x:t1[0],y:t1[1],i:null,o:[t1[0]+(b[0]-t1[0])*K,t1[1]+(b[1]-t1[1])*K]});
+      pts.push({x:t2[0],y:t2[1],i:[t2[0]+(b[0]-t2[0])*K,t2[1]+(b[1]-t2[1])*K],o:null})}
+    res.push(pts)}
+  return res}
+/* PXGEO-END */
 function examples(){
   const narch={z:true,p:[P(410,0),P(500,0),P(500,340,null,[500,450]),P(310,510,[430,510],[210,510],1),
     P(60,400,[130,470]),P(60,320,null,[120,390]),P(260,425,[190,425],[360,425],1),P(410,320,[410,390])]};
@@ -1280,7 +1380,7 @@ const psx=X=>X*view.s+view.ox,psy=Y=>-Y*view.s+view.oy,pwx=p=>(p-view.ox)/view.s
 /* glyph-local coordinates: sx/sy/wx/wy work in the frame A of one item (normally the active glyph) */
 let A={x0:0,by:0,k:1};const frameOf=it=>it&&it.x0!=null?{x0:it.x0,by:it.by,k:it.k}:{x0:0,by:0,k:1};const useA=()=>{A=frameOf(curItem())};
 const sx=x=>psx(A.x0+A.k*x),sy=y=>psy(A.by+A.k*y),wx=p=>(pwx(p)-A.x0)/A.k,wy=p=>(pwy(p)-A.by)/A.k;
-function botPad(){const gp=document.getElementById('genPanel');if(gp&&!gp.hidden)return gp.offsetHeight+30;if(clean)return 30;
+function botPad(){const gp=document.getElementById('genPanel'),pp=document.getElementById('pxPanel');if(pp&&!pp.hidden)return pp.offsetHeight+30;if(gp&&!gp.hidden)return gp.offsetHeight+30;if(clean)return 30;
   const d=document.querySelector('.dock'),c=cv.getBoundingClientRect();if(!d||!d.offsetParent)return 40;return Math.max(40,c.bottom-d.getBoundingClientRect().top+12)}
 function sidePads(){if(clean)return [24,24];const c=cv.getBoundingClientRect(),l=document.querySelector('.rail.left'),r=document.querySelector('.rail.right');
   const L=l&&l.offsetParent?l.getBoundingClientRect().right-c.left+14:20,Rr=r&&r.offsetParent?c.right-r.getBoundingClientRect().left+14:20;return CW>700?[L,Rr]:[20,20]}
@@ -1361,11 +1461,11 @@ function drawPoints(g){
 }
 
 /* ---------- undo ---------- */
-function snap(ch){const g=S.glyphs[ch];return {ch,d:JSON.stringify(g?{c:g.c,k:g.k||[],u:(g.u||[]).map(({id,dx,dy})=>({id,dx,dy})),l:g.l,r:g.r,lk:g.lk||'',rk:g.rk||''}:null)}}
+function snap(ch){const g=S.glyphs[ch];return {ch,d:JSON.stringify(g?{px:g.px||null,c:g.c,k:g.k||[],u:(g.u||[]).map(({id,dx,dy})=>({id,dx,dy})),l:g.l,r:g.r,lk:g.lk||'',rk:g.rk||''}:null)}}
 function pushUndo(){const ch=curCh();if(!ch)return;undoS.push(snap(ch));if(undoS.length>200)undoS.shift();redoS.length=0;updButtons()}
-function restore(s){const d=JSON.parse(s.d);if(d){const g=S.glyphs[s.ch]||(S.glyphs[s.ch]={v:0});g.c=d.c;g.k=d.k||[];g.u=d.u||[];g.l=d.l;g.r=d.r;g.lk=d.lk||'';g.rk=d.rk||''}else delete S.glyphs[s.ch];
+function restore(s){const d=JSON.parse(s.d);if(d){const g=S.glyphs[s.ch]||(S.glyphs[s.ch]={v:0});g.c=d.c;g.px=d.px||null;g.k=d.k||[];g.u=d.u||[];g.l=d.l;g.r=d.r;g.lk=d.lk||'';g.rk=d.rk||''}else delete S.glyphs[s.ch];
   sel.clear();openC=null;changed(s.ch)}
-function metaSnap(){return {m:JSON.stringify({mx:S.mx||{},kern:S.kern,gkern:S.gkern||{},groups:S.groups||{},spacing:S.spacing,strength:S.strength,mono:S.mono||0,spaceW:S.spaceW||0,ctx:S.ctx||{}})}}
+function metaSnap(){return {m:JSON.stringify({px:S.px||null,mx:S.mx||{},kern:S.kern,gkern:S.gkern||{},groups:S.groups||{},spacing:S.spacing,strength:S.strength,mono:S.mono||0,spaceW:S.spaceW||0,ctx:S.ctx||{}})}}
 function pushUndoMeta(){undoS.push(metaSnap());if(undoS.length>200)undoS.shift();redoS.length=0;updButtons()}
 function restoreMeta(s){Object.assign(S,JSON.parse(s.m));MC.clear();syncUI();changed(null)}
 function undo(){const s=undoS.pop();if(!s)return;if(s.m){redoS.push(metaSnap());restoreMeta(s);updButtons();return}if(s.multi){redoS.push({multi:s.multi.map(x=>snap(x.ch))});s.multi.forEach(restore)}else{redoS.push(snap(s.ch));restore(s)}updButtons()}
@@ -1379,8 +1479,8 @@ function changed(ch){if(ch){const g=S.glyphs[ch];if(g)g.v=(g.v||0)+1;dirty.add('
   S.t=Date.now();GC=null;relayout();draw();renderInsp();schedule()}
 function schedule(){clearTimeout(saveT);saveT=setTimeout(flush,900);setStatus('Ändert…')}
 const gid=ch=>'g_'+ch.codePointAt(0).toString(16).padStart(4,'0');
-function serial(){const g={};for(const [k,v] of Object.entries(S.glyphs))g[k]={c:v.c,k:v.k||[],l:v.l||0,r:v.r||0,...(v.u&&v.u.length?{u:v.u.map(({id,dx,dy})=>({id,dx,dy}))}:{}),...(v.lk?{lk:v.lk}:{}),...(v.rk?{rk:v.rk}:{})};
-  return {mx:S.mx||{},gen:S.gen||null,name:S.name,spacing:S.spacing,strength:S.strength,kern:S.kern,gkern:S.gkern||{},groups:S.groups||{},parts:S.parts||{},text:S.text,example:!!S.example,t:S.t,names:S.names||{},fea:S.fea||'',feaAuto:S.feaAuto!==false,ps:S.ps||[],fmt:S.fmt||{},mono:S.mono||0,spaceW:S.spaceW||0,sets:S.sets||[],csets:S.csets||[],ctx:S.ctx||{},glyphs:g}}
+function serial(){const g={};for(const [k,v] of Object.entries(S.glyphs))g[k]={...(v.px?{px:v.px}:{}),c:v.c,k:v.k||[],l:v.l||0,r:v.r||0,...(v.u&&v.u.length?{u:v.u.map(({id,dx,dy})=>({id,dx,dy}))}:{}),...(v.lk?{lk:v.lk}:{}),...(v.rk?{rk:v.rk}:{})};
+  return {px:S.px||null,mx:S.mx||{},gen:S.gen||null,name:S.name,spacing:S.spacing,strength:S.strength,kern:S.kern,gkern:S.gkern||{},groups:S.groups||{},parts:S.parts||{},text:S.text,example:!!S.example,t:S.t,names:S.names||{},fea:S.fea||'',feaAuto:S.feaAuto!==false,ps:S.ps||[],fmt:S.fmt||{},mono:S.mono||0,spaceW:S.spaceW||0,sets:S.sets||[],csets:S.csets||[],ctx:S.ctx||{},glyphs:g}}
 async function flush(){
   let okLocal=true;try{localStorage.setItem(LOCAL_KEY,JSON.stringify(serial()))}catch(e){okLocal=false}
   if(!okLocal){setStatus('Speichern im Browser fehlgeschlagen (Speicher voll?). Bitte „Projekt sichern (.json)“ unter Schrift & Export nutzen.');if(!db){dirty.clear();return}}
@@ -1393,8 +1493,8 @@ async function flush(){
   catch(e){for(const k of keys)dirty.add(k);setStatus('Speichern fehlgeschlagen, nur lokal');}
   saving=false}
 function setStatus(t){document.getElementById('status').textContent=t}
-function fromSerial(o){const g={};for(const [k,v] of Object.entries(o.glyphs||{}))g[k]={c:v.c||[],k:v.k||[],u:v.u||[],l:v.l||0,r:v.r||0,lk:v.lk||'',rk:v.rk||'',v:1};
-  return {mx:o.mx||{},gen:o.gen||null,name:o.name||'Meine Schrift',spacing:+o.spacing||60,strength:o.strength??50,kern:o.kern||{},gkern:o.gkern||{},groups:o.groups||{},parts:o.parts||{},glyphs:g,text:o.text||'HOT AVO nono',example:!!o.example,t:o.t||0,names:o.names||{},fea:o.fea||'',feaAuto:o.feaAuto!==false,ps:o.ps||[],fmt:o.fmt||{},mono:+o.mono||0,spaceW:+o.spaceW||0,sets:o.sets||[],csets:o.csets||[],ctx:o.ctx||{}}}
+function fromSerial(o){const g={};for(const [k,v] of Object.entries(o.glyphs||{}))g[k]={px:v.px||null,c:v.c||[],k:v.k||[],u:v.u||[],l:v.l||0,r:v.r||0,lk:v.lk||'',rk:v.rk||'',v:1};
+  return {px:o.px||null,mx:o.mx||{},gen:o.gen||null,name:o.name||'Meine Schrift',spacing:+o.spacing||60,strength:o.strength??50,kern:o.kern||{},gkern:o.gkern||{},groups:o.groups||{},parts:o.parts||{},glyphs:g,text:o.text||'HOT AVO nono',example:!!o.example,t:o.t||0,names:o.names||{},fea:o.fea||'',feaAuto:o.feaAuto!==false,ps:o.ps||[],fmt:o.fmt||{},mono:+o.mono||0,spaceW:+o.spaceW||0,sets:o.sets||[],csets:o.csets||[],ctx:o.ctx||{}}}
 function loadLocal(){try{const s=localStorage.getItem(LOCAL_KEY);if(s)return fromSerial(JSON.parse(s))}catch(e){}return null}
 async function initStore(){
   if(!window.claude||!window.claude.use){setStatus(S.example?'Beispiel, nur auf diesem Gerät':'Auf diesem Gerät gespeichert');return}
@@ -1564,7 +1664,7 @@ function renderTabs(parts){
   insp.setAttribute('role','tabpanel');
   insp.innerHTML=by[inspTab].join('')||'<span class="note">Hier gibt es für die aktuelle Auswahl nichts einzustellen.</span>'}
 document.getElementById('inspTabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;inspTab=b.dataset.tab;renderInsp()});
-function renderInsp(){
+function renderInsp(){if(typeof pxOpen!=='undefined'&&pxOpen)pxDrawGrid();
   const parts=[];const ch=curCh();const it=curItem();
   if(tool==='brush'&&(nib.n==='broad'||nib.ov))parts.push(`<div class="blk"><span class="lbl">Neigung</span><span class="num">${nib.tilt?'vom Pencil':nib.a+'°'}</span><button class="solid" data-act="tilt" aria-pressed="${nib.tilt}">Neigung vom Pencil nehmen</button></div>`);
   if(tool==='select')parts.push(`<div class="blk"><span class="lbl">Auswahl</span><span class="seg">${btn('sm-r','▭ Rechteck','aria-pressed="'+(selMode==='r')+'"')}${btn('sm-l','Lasso','aria-pressed="'+(selMode==='l')+'"')}</span><span class="note">Mit dem Stift ins Leere ziehen wählt aus. Ausgewähltes ziehen verschiebt es.</span></div>`);
@@ -1938,13 +2038,103 @@ function genClose(keep){if(!genBase)return;cancelAnimationFrame(genRaf);
     genBase=null;S.t=Date.now();MC.clear();relayout();draw();renderInsp();schedule();alertMsg(`${ch.length} Buchstaben aus Regeln übernommen. Rückgängig macht alles in einem Schritt zurück.`)}
   else{genRestoreBase();S.mx=JSON.parse(genBase.mx);genP=JSON.parse(genBase.gen);applyMx();syncMx();genBase=null;MC.clear();relayout();draw();renderInsp();alertMsg('Regeln verworfen.')}
   document.getElementById('genPanel').hidden=true;document.querySelector('.stage').classList.remove('gen');document.getElementById('bGen').setAttribute('aria-pressed','false');fit()}
-document.getElementById('bGen').onclick=()=>genBase?genClose(true):genOpen();
+document.getElementById('bGen').onclick=()=>{if(typeof pxOpen!=='undefined'&&pxOpen)pxToggle(false);genBase?genClose(true):genOpen()};
 for(const [k,id] of Object.entries(gIn))document.getElementById(id).addEventListener('input',e=>{const v=+e.target.value;if(gMx(k)){S.mx=S.mx||{};S.mx[k]=v;applyMx();MC.clear();dirty.add('meta')}else genP[k]=v;document.getElementById(id+'v').textContent=v+gUnit[k];genQueue()});
 document.getElementById('gEnd').onclick=()=>{genP.e=genP.e==='f'?'r':'f';genSync();genQueue()};
 document.getElementById('gAll').onclick=()=>{genAll=!genAll;genSync();genQueue()};
 document.getElementById('gReset').onclick=()=>{genP={...GENP0};S.mx={};applyMx();MC.clear();dirty.add('meta');genSync();genQueue()};
 document.getElementById('gCancel').onclick=()=>genClose(false);
 document.getElementById('gOk').onclick=()=>genClose(true);
+
+
+/* ---------- pixel grid mode: cells -> shared geometry -> real outlines ----------
+   Hand-painted cells (or a rasterised drawing) are the input; the global shape rules (roundness, liquid bridge,
+   cell gap, merge direction) turn them into ordinary Bézier contours, so preview, spacing and TTF/OTF export just work.
+   A glyph keeps its cells in g.px; if its outline is later edited by hand, the rules stop overwriting it. */
+const PX0={cols:5,rows:9,base:2,r:30,j:50,gap:12,m:3};
+const pxP=()=>({...PX0,...(S.px||{})});
+const pxCell=()=>{const p=pxP();return CAP/Math.max(1,p.rows-p.base)};
+function pxHash(c){const t=JSON.stringify(c);let h=5381;for(let i=0;i<t.length;i++)h=((h<<5)+h+t.charCodeAt(i))|0;return h}
+function pxBlank(){const p=pxP();return Array.from({length:p.rows},()=>'.'.repeat(p.cols))}
+function pxOn(cells,p){return Array.from({length:p.rows},(_,r)=>Array.from({length:p.cols},(_,c)=>(cells[r]||'')[c]==='#'))}
+function pxContours(cells){const p=pxP(),u=pxCell(),loops=pxOutline(pxOn(cells,p),p.cols,p.rows,{r:p.r,j:p.j,gap:p.gap,mh:p.m&1,mv:p.m&2}),top=(p.rows-p.base)*u,o=[];
+  const X=x=>Math.round(x*u*100)/100,Y=y=>Math.round((top-y*u)*100)/100;
+  for(const l of loops)o.push({z:true,p:l.map(q=>P(X(q.x),Y(q.y),q.i?[X(q.i[0]),Y(q.i[1])]:null,q.o?[X(q.o[0]),Y(q.o[1])]:null,!!(q.i||q.o)))});return o}
+function pxRegen(ch,force){const g=S.glyphs[ch];if(!g||!g.px)return false;
+  if(!force&&g.px.h!==pxHash(g.c)){g.px=null;return false}
+  g.c=pxContours(g.px.cells);g.px.h=pxHash(g.c);g.v=(g.v||0)+1;return true}
+function pxRegenAll(){let n=0;for(const ch of Object.keys(S.glyphs))if(S.glyphs[ch].px&&pxRegen(ch)){dirty.add('g:'+ch);n++}MC.clear();return n}
+let pxOpen=false,pxTool='draw',pxPaint=null,pxRaf=0;
+const pxMsg=t=>{document.getElementById('pxMsg').textContent=t};
+function pxGlyph(create){const ch=curCh();if(!ch||blank(ch))return null;let g=S.glyphs[ch];
+  if(!g&&create)g=S.glyphs[ch]={c:[],l:0,r:0,v:0};
+  if(g&&create&&!g.px){if(hasInk(g)&&(g.c.length||(g.k&&g.k.length)))return g;g.px={cells:pxBlank(),h:pxHash(g.c)}}
+  return g}
+function pxDrawGrid(){const cv=document.getElementById('pxCv');if(!cv)return;const p=pxP(),ch=curCh(),g=ch&&S.glyphs[ch],cells=(g&&g.px&&g.px.cells)||pxBlank();
+  const cs=Math.max(14,Math.min(28,Math.floor(Math.min(CW-40,300)/Math.max(p.cols+1,1)))),lab=16,W=lab+p.cols*cs,H=lab+p.rows*cs,dpr=window.devicePixelRatio||1;
+  cv.style.width=W+'px';cv.style.height=H+'px';cv.width=W*dpr;cv.height=H*dpr;const x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);
+  const st=getComputedStyle(document.documentElement),ink=st.getPropertyValue('--ink').trim()||'#111',line=st.getPropertyValue('--line').trim()||'#ccc',mut=st.getPropertyValue('--muted').trim()||'#666',acc=st.getPropertyValue('--accent').trim()||'#2446c7';
+  x.clearRect(0,0,W,H);x.font='10px "IBM Plex Mono",monospace';x.fillStyle=mut;x.textAlign='center';x.textBaseline='middle';
+  for(let c=0;c<p.cols;c++)x.fillText(String(c+1),lab+c*cs+cs/2,lab/2);x.textAlign='right';
+  for(let r=0;r<p.rows;r++)x.fillText(String(r+1),lab-3,lab+r*cs+cs/2);
+  for(let r=0;r<p.rows;r++)for(let c=0;c<p.cols;c++){if((cells[r]||'')[c]==='#'){x.fillStyle=acc;x.globalAlpha=.85;x.fillRect(lab+c*cs+1,lab+r*cs+1,cs-2,cs-2);x.globalAlpha=1}}
+  x.strokeStyle=line;x.lineWidth=1;x.beginPath();for(let c=0;c<=p.cols;c++){x.moveTo(lab+c*cs+.5,lab);x.lineTo(lab+c*cs+.5,H)}for(let r=0;r<=p.rows;r++){x.moveTo(lab,lab+r*cs+.5);x.lineTo(W,lab+r*cs+.5)}x.stroke();
+  x.strokeStyle=ink;x.globalAlpha=.5;x.beginPath();const by=lab+(p.rows-p.base)*cs+.5;x.moveTo(lab,by);x.lineTo(W,by);x.stroke();x.globalAlpha=1;
+  cv._m={cs,lab,p};document.getElementById('pxCh').textContent=ch&&!blank(ch)?disp(ch):'–';
+  for(const b of document.querySelectorAll('[data-pxm]'))b.setAttribute('aria-pressed',String(+b.dataset.pxm===p.m));
+  document.getElementById('pxCols').textContent=p.cols;document.getElementById('pxRows').textContent=p.rows;
+  for(const [k,id] of [['r','pxR'],['j','pxJ'],['gap','pxG']]){const e=document.getElementById(id);if(document.activeElement!==e)e.value=Math.min(+e.max,p[k]);const n=document.getElementById(id+'n');if(document.activeElement!==n){n.value=p[k];n.classList.remove('bad')}}}
+function pxApply(ch,cells,undoDone){const g=pxGlyph(true);if(!g||!g.px)return;if(!undoDone)pushUndo();g.px.cells=cells;pxRegen(ch,true);dirty.add('g:'+ch);MC.clear();changed(ch);pxDrawGrid()}
+function pxCellAt(e){const cv=document.getElementById('pxCv'),m=cv._m,r=cv.getBoundingClientRect(),x=(e.clientX-r.left-m.lab)/m.cs,y=(e.clientY-r.top-m.lab)/m.cs,c=Math.floor(x),rr=Math.floor(y);
+  return c>=0&&rr>=0&&c<m.p.cols&&rr<m.p.rows?[c,rr]:null}
+function pxSet(cells,c,r,v){const row=(cells[r]||'.'.repeat(pxP().cols)).split('');row[c]=v?'#':'.';cells[r]=row.join('')}
+(()=>{const cv=document.getElementById('pxCv');
+  cv.addEventListener('pointerdown',e=>{const ch=curCh();const g=pxGlyph(true);if(!g||!g.px){pxMsg('Dieser Buchstabe hat eine Zeichnung. „Aus Zeichnung“ überträgt sie aufs Raster.');return}
+    const cc=pxCellAt(e);if(!cc)return;cv.setPointerCapture(e.pointerId);pushUndo();const cells=g.px.cells.slice(),cur=(cells[cc[1]]||'')[cc[0]]==='#';
+    const erase=pxTool==='erase'||e.button===2||(e.buttons&2)||(e.pointerType==='mouse'&&e.button===2);pxPaint={ch,v:erase?false:(pxTool==='draw'?!cur:true),cells};
+    if(pxTool==='draw'&&!erase&&!cur)pxPaint.v=true;pxPaint.v=erase?false:pxPaint.v;pxSet(cells,cc[0],cc[1],pxPaint.v);pxApply(ch,cells,true)});
+  cv.addEventListener('pointermove',e=>{if(!pxPaint)return;const cc=pxCellAt(e);if(!cc)return;if(((pxPaint.cells[cc[1]]||'')[cc[0]]==='#')===pxPaint.v)return;pxSet(pxPaint.cells,cc[0],cc[1],pxPaint.v);pxApply(pxPaint.ch,pxPaint.cells,true)});
+  const end=()=>{pxPaint=null};cv.addEventListener('pointerup',end);cv.addEventListener('pointercancel',end);cv.addEventListener('contextmenu',e=>e.preventDefault())})();
+function pxEdit(fn){const ch=curCh();const g=pxGlyph(true);if(!g||!g.px)return;const p=pxP(),c=fn(g.px.cells.map(r=>r.padEnd(p.cols,'.')),p);if(c)pxApply(ch,c)}
+document.getElementById('pxUndo').onclick=()=>{undo();pxDrawGrid()};document.getElementById('pxRedo').onclick=()=>{redo();pxDrawGrid()};
+document.getElementById('pxMir').onclick=()=>pxEdit(c=>c.map(r=>[...r].reverse().join('')));
+document.getElementById('pxSl').onclick=()=>pxEdit((c,p)=>c.map(r=>r.slice(1)+r[0]));
+document.getElementById('pxSr').onclick=()=>pxEdit((c,p)=>c.map(r=>r[r.length-1]+r.slice(0,-1)));
+document.getElementById('pxClr').onclick=()=>pxEdit(()=>pxBlank());
+document.getElementById('pxDraw').onclick=()=>{pxTool='draw';pxTools()};document.getElementById('pxErase').onclick=()=>{pxTool='erase';pxTools()};
+function pxTools(){document.getElementById('pxDraw').setAttribute('aria-pressed',pxTool==='draw');document.getElementById('pxErase').setAttribute('aria-pressed',pxTool==='erase')}
+document.getElementById('pxPrev').onclick=()=>{if(active>0)activate(active-1)};document.getElementById('pxNext').onclick=()=>{if(active<[...S.text].length-1)activate(active+1)};
+document.getElementById('pxFromDraw').onclick=()=>{const ch=curCh(),g=S.glyphs[ch];if(!ch||!g||!hasInk(g)){pxMsg('Hier gibt es noch keine Zeichnung.');return}
+  const p=pxP(),u=pxCell(),K=16,cv=document.createElement('canvas');cv.width=p.cols*K;cv.height=p.rows*K;const x=cv.getContext('2d',{willReadFrequently:true});
+  const cs=glyphCs({...g,c:g.px?[]:g.c,u:g.u}),b=bounds(cs),sc=K/u,top=(p.rows-p.base)*u;x.setTransform(sc,0,0,-sc,-b.x0*sc,top*sc);x.fillStyle='#000';x.fill(pathOf(cs),'nonzero');
+  const d=x.getImageData(0,0,cv.width,cv.height).data,cells=[];
+  for(let r=0;r<p.rows;r++){let row='';for(let c=0;c<p.cols;c++){let a=0;for(let yy=0;yy<K;yy+=2)for(let xx=0;xx<K;xx+=2)a+=d[((r*K+yy)*cv.width+c*K+xx)*4+3];row+=a/255/(K*K/4)>=.4?'#':'.'}cells.push(row)}
+  pushUndo();g.c=[];g.k=[];g.u=[];g.px={cells,h:0};pxRegen(ch,true);dirty.add('g:'+ch);MC.clear();changed(ch);pxDrawGrid();pxMsg('Zeichnung aufs Raster übertragen.')};
+function pxGlobal(){cancelAnimationFrame(pxRaf);pxRaf=requestAnimationFrame(()=>{const n=pxRegenAll();changed(null);pxDrawGrid();if(!n)return})}
+for(const [k,id,mx] of [['r','pxR',100],['j','pxJ',100],['gap','pxG',95]]){
+  const sl=document.getElementById(id),nu=document.getElementById(id+'n');
+  const set=v=>{S.px={...pxP(),[k]:v};pxGlobal()};
+  sl.addEventListener('input',()=>{nu.value=sl.value;nu.classList.remove('bad');set(+sl.value)});
+  nu.addEventListener('input',()=>{const t=nu.value.trim(),v=Number(t);if(t===''||!Number.isFinite(v)||v<0||v>mx){nu.classList.add('bad');pxMsg(`Bitte eine Zahl von 0 bis ${mx} eingeben.`);return}nu.classList.remove('bad');pxMsg('');sl.value=Math.min(+sl.max,v);set(v)})}
+for(const b of document.querySelectorAll('[data-pxm]'))b.onclick=()=>{S.px={...pxP(),m:+b.dataset.pxm};pxGlobal()};
+for(const b of document.querySelectorAll('[data-pxs]'))b.onclick=()=>{const p=pxP(),a=b.dataset.pxs;let {cols,rows}=p;
+  if(a==='c+')cols=Math.min(20,cols+1);if(a==='c-')cols=Math.max(3,cols-1);if(a==='r+')rows=Math.min(24,rows+1);if(a==='r-')rows=Math.max(5,rows-1);
+  if(cols===p.cols&&rows===p.rows)return;
+  for(const g of Object.values(S.glyphs))if(g.px){for(let r=0;r<g.px.cells.length;r++){const row=g.px.cells[r];if(r>=rows&&/#/.test(row)||(cols<p.cols&&/#/.test(row.slice(cols)))){pxMsg('Dafür müssten Zellen gelöscht werden. Erst leeren oder verschieben.');return}}}
+  for(const g of Object.values(S.glyphs))if(g.px)g.px.cells=Array.from({length:rows},(_,r)=>(g.px.cells[r]||'').padEnd(cols,'.').slice(0,cols));
+  S.px={...p,cols,rows,base:Math.min(p.base,rows-3)};pxGlobal()};
+const PXS={A:'.###./#...#/#...#/#####/#...#/#...#/#...#',B:'####./#...#/#...#/####./#...#/#...#/####.',C:'.####/#..../#..../#..../#..../#..../.####',D:'####./#...#/#...#/#...#/#...#/#...#/####.',E:'#####/#..../#..../####./#..../#..../#####',F:'#####/#..../#..../####./#..../#..../#....',G:'.####/#..../#..../#.###/#...#/#...#/.###.',H:'#...#/#...#/#...#/#####/#...#/#...#/#...#',I:'#####/..#../..#../..#../..#../..#../#####',J:'..###/....#/....#/....#/....#/#...#/.###.',K:'#...#/#..#./#.#../##.../#.#../#..#./#...#',L:'#..../#..../#..../#..../#..../#..../#####',M:'#...#/##.##/#.#.#/#.#.#/#...#/#...#/#...#',N:'#...#/##..#/#.#.#/#..##/#...#/#...#/#...#',O:'.###./#...#/#...#/#...#/#...#/#...#/.###.',P:'####./#...#/#...#/####./#..../#..../#....',Q:'.###./#...#/#...#/#...#/#.#.#/#..#./.##.#',R:'####./#...#/#...#/####./#.#../#..#./#...#',S:'.####/#..../#..../.###./....#/....#/####.',T:'#####/..#../..#../..#../..#../..#../..#..',U:'#...#/#...#/#...#/#...#/#...#/#...#/.###.',V:'#...#/#...#/#...#/#...#/#...#/.#.#./..#..',W:'#...#/#...#/#...#/#.#.#/#.#.#/##.##/#...#',X:'#...#/#...#/.#.#./..#../.#.#./#...#/#...#',Y:'#...#/#...#/.#.#./..#../..#../..#../..#..',Z:'#####/....#/...#./..#../.#.../#..../#####',
+ '0':'.###./#...#/#..##/#.#.#/##..#/#...#/.###.','1':'..#../.##../..#../..#../..#../..#../.###.','2':'.###./#...#/....#/...#./..#../.#.../#####','3':'####./....#/....#/.###./....#/....#/####.','4':'#...#/#...#/#...#/#####/....#/....#/....#','5':'#####/#..../####./....#/....#/#...#/.###.','6':'.###./#..../#..../####./#...#/#...#/.###.','7':'#####/....#/...#./..#../.#.../.#.../.#...','8':'.###./#...#/#...#/.###./#...#/#...#/.###.','9':'.###./#...#/#...#/.####/....#/....#/.###.',
+ a:'2|.###./....#/.####/#...#/.####',b:'0|#..../#..../####./#...#/#...#/#...#/####.',c:'2|.####/#..../#..../#..../.####',d:'0|....#/....#/.####/#...#/#...#/#...#/.####',e:'2|.###./#...#/#####/#..../.####',f:'0|..##./.#.../####./.#.../.#.../.#.../.#...',g:'2|.####/#...#/#...#/.####/....#/....#/.###.',h:'0|#..../#..../####./#...#/#...#/#...#/#...#',i:'0|..#../...../.##../..#../..#../..#../.###.',j:'0|...#./...../..##./...#./...#./...#./...#./#..#./.##..',k:'0|#..../#..../#..#./#.#../##.../#.#../#..#.',l:'0|.##../..#../..#../..#../..#../..#../.###.',m:'2|##.#./#.#.#/#.#.#/#.#.#/#.#.#',n:'2|####./#...#/#...#/#...#/#...#',o:'2|.###./#...#/#...#/#...#/.###.',p:'2|####./#...#/#...#/#...#/####./#..../#....',q:'2|.####/#...#/#...#/#...#/.####/....#/....#',r:'2|#.###/##..#/#..../#..../#....',s:'2|.####/#..../.###./....#/####.',t:'1|.#.../####./.#.../.#.../.#.../..##.',u:'2|#...#/#...#/#...#/#...#/.####',v:'2|#...#/#...#/#...#/.#.#./..#..',w:'2|#...#/#...#/#.#.#/#.#.#/.#.#.',x:'2|#...#/.#.#./..#../.#.#./#...#',y:'2|#...#/#...#/#...#/.####/....#/....#/.###.',z:'2|#####/...#./..#../.#.../#####',
+ '.':'6|..#..',',':'6|..#../.#...',':':'3|..#../...../...../..#..','!':'0|..#../..#../..#../..#../..#../...../..#..','?':'0|.###./#...#/....#/...#./..#../...../..#..','-':'3|.###.'};
+function pxStarterCells(def){const p=pxP();let off=p.rows-p.base-7,rows;if(def.includes('|')){const [st,r]=def.split('|');off+=+st;rows=r.split('/')}else rows=def.split('/');
+  const cells=pxBlank();rows.forEach((row,i)=>{const y=off+i;if(y<0||y>=p.rows)return;const a=cells[y].split('');for(let c=0;c<p.cols&&c<row.length;c++)if(row[c]==='#')a[c]='#';cells[y]=a.join('')});return cells}
+document.getElementById('pxStarter').onclick=e=>confirm2(e.currentTarget,()=>{let n=0;for(const [ch,def] of Object.entries(PXS)){const g=S.glyphs[ch];if(g&&hasInk(g)&&!g.px)continue;
+  if(!g)S.glyphs[ch]={c:[],l:0,r:0,v:0};const gg=S.glyphs[ch];gg.px={cells:pxStarterCells(def),h:0};pxRegen(ch,true);dirty.add('g:'+ch);n++}
+  MC.clear();changed(null);fit();pxDrawGrid();pxMsg(`${n} Starter-Buchstaben gesetzt. Selbst Gezeichnetes bleibt.`)});
+function pxToggle(on){pxOpen=on;document.getElementById('pxPanel').hidden=!on;document.querySelector('.stage').classList.toggle('gen',on);document.getElementById('bPx').setAttribute('aria-pressed',on);
+  if(on&&genBase)genClose(false);if(on){pxDrawGrid()}relayout();fit()}
+document.getElementById('bPx').onclick=()=>pxToggle(!pxOpen);document.getElementById('pxDone').onclick=()=>pxToggle(false);
 
 fName.oninput=()=>{S.name=fName.value;document.getElementById('fontNameLbl').textContent=S.name;changed(null)};
 fSp.oninput=()=>{S.spacing=+fSp.value;MC.clear();syncUI();changed(null)};
