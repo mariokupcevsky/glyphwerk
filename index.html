@@ -262,7 +262,7 @@ body.clean .cleanbar{display:flex}
   </div>
   <div class="row">
     <button class="solid" id="bKernReset">Eigenes Kerning löschen</button>
-    <button class="solid" id="bExamples">Beispielformen entfernen</button>
+    <button class="solid" id="bExamples">Beispielformen entfernen</button> <button class="solid" id="bExLoad">Beispielformen laden</button>
   </div>
   <div class="msg" id="expMsg" role="status"></div>
   <p class="note">Die OTF kommt als ZIP, weil claude.ai .otf-Dateien nicht direkt speichern lässt. In der Dateien-App einmal antippen, dann liegt die OTF daneben. Damit Pages, Notizen oder Word auf dem iPad die Schrift nutzen, muss sie installiert werden, zum Beispiel mit einer Schrift-Installations-App aus dem App Store. Auf Mac und Windows reicht ein Doppelklick auf die Datei.</p>
@@ -316,7 +316,7 @@ let tool='brush',inv=false,mouseSel=false,selStroke=null,selK=new Set(),selMode=
 try{inv=localStorage.getItem('glyphwerk.inv')==='1'}catch(e){}
 let LANG='de';try{LANG=localStorage.getItem('glyphwerk.lang')||((navigator.language||'de').toLowerCase().startsWith('de')?'de':'en')}catch(e){LANG=(navigator.language||'de').toLowerCase().startsWith('de')?'de':'en'}
 /* ---------- language: UI is written in German; English comes from this table (exact strings) and the patterns below ---------- */
-const I18N={'Feedback':'Feedback','Fehler melden oder Idee senden':'Report a bug or send an idea','Fehler':'Bug','Idee':'Idea','Kurz':'Summary','Beschreibung':'Description','Auf GitHub senden':'Send on GitHub','Text kopieren':'Copy text','Glyphe':'Glyph','Glyphe':'Glyph','Abstand':'Spacing','Absatz':'Paragraph','Mitgesendet werden nur Version, Browser, Bildschirmgröße und Sprache. Keine Schrift und keine Glyphen.':'Only version, browser, screen size and language are sent. No font and no glyphs.','„Auf GitHub senden“ öffnet ein vorausgefülltes Ticket. Dafür brauchst du ein GitHub-Konto. Ohne Konto: „Text kopieren“ und an Mario schicken.':'“Send on GitHub” opens a prefilled ticket. You need a GitHub account for that. Without one: “Copy text” and send it to Mario.','Hier gibt es für die aktuelle Auswahl nichts einzustellen.':'Nothing to adjust for the current selection.','Bitte kurz beschreiben, worum es geht.':'Please add a short summary.','GitHub wurde geöffnet. Dort noch auf „Submit new issue“ tippen.':'GitHub opened. Tap “Submit new issue” there.','Kopiert. Schick den Text an Mario.':'Copied. Send the text to Mario.','OTF exportieren':'Export OTF','Die OTF wird direkt heruntergeladen. Damit Pages, Notizen oder Word auf dem iPad die Schrift nutzen, muss sie installiert werden, zum Beispiel mit einer Schrift-Installations-App aus dem App Store. Auf Mac und Windows reicht ein Doppelklick auf die Datei.':'The OTF downloads directly. To use the font in Pages, Notes or Word on iPad it has to be installed, for example with a font installer app from the App Store. On Mac and Windows, double-click the file.','Details':'Details','Speichern im Browser fehlgeschlagen (Speicher voll?). Bitte „Projekt sichern (.json)“ unter Schrift & Export nutzen.':'Saving in the browser failed (storage full?). Please use “Back up project (.json)” under Font & Export.','Vereinfachen':'Simplify',
+const I18N={'Ganze Glyphe löschen':'Delete whole glyph','Glyphe gelöscht. Rückgängig mit ↶.':'Glyph deleted. Undo with ↶.','Beispielformen laden':'Load example shapes','Beispielformen geladen (H T A V O n o ¨ ´).':'Example shapes loaded (H T A V O n o ¨ ´).','Die Beispielformen sind schon da.':'The example shapes are already there.','Feedback':'Feedback','Fehler melden oder Idee senden':'Report a bug or send an idea','Fehler':'Bug','Idee':'Idea','Kurz':'Summary','Beschreibung':'Description','Auf GitHub senden':'Send on GitHub','Text kopieren':'Copy text','Glyphe':'Glyph','Glyphe':'Glyph','Abstand':'Spacing','Absatz':'Paragraph','Mitgesendet werden nur Version, Browser, Bildschirmgröße und Sprache. Keine Schrift und keine Glyphen.':'Only version, browser, screen size and language are sent. No font and no glyphs.','„Auf GitHub senden“ öffnet ein vorausgefülltes Ticket. Dafür brauchst du ein GitHub-Konto. Ohne Konto: „Text kopieren“ und an Mario schicken.':'“Send on GitHub” opens a prefilled ticket. You need a GitHub account for that. Without one: “Copy text” and send it to Mario.','Hier gibt es für die aktuelle Auswahl nichts einzustellen.':'Nothing to adjust for the current selection.','Bitte kurz beschreiben, worum es geht.':'Please add a short summary.','GitHub wurde geöffnet. Dort noch auf „Submit new issue“ tippen.':'GitHub opened. Tap “Submit new issue” there.','Kopiert. Schick den Text an Mario.':'Copied. Send the text to Mario.','OTF exportieren':'Export OTF','Die OTF wird direkt heruntergeladen. Damit Pages, Notizen oder Word auf dem iPad die Schrift nutzen, muss sie installiert werden, zum Beispiel mit einer Schrift-Installations-App aus dem App Store. Auf Mac und Windows reicht ein Doppelklick auf die Datei.':'The OTF downloads directly. To use the font in Pages, Notes or Word on iPad it has to be installed, for example with a font installer app from the App Store. On Mac and Windows, double-click the file.','Details':'Details','Speichern im Browser fehlgeschlagen (Speicher voll?). Bitte „Projekt sichern (.json)“ unter Schrift & Export nutzen.':'Saving in the browser failed (storage full?). Please use “Back up project (.json)” under Font & Export.','Vereinfachen':'Simplify',
 '▭ Rechteck':'▭ Rectangle','Lasso':'Lasso','Auswahl':'Selection','Mit dem Stift ins Leere ziehen wählt aus. Ausgewähltes ziehen verschiebt es.':'Drag with the pen on empty space to select. Drag the selection to move it.',
 '↖ Auswahl':'↖ Select','Punkte, Griffe und Striche anfassen, ohne zu zeichnen':'Grab points, handles and strokes without drawing','Auswahl: Punkte, Griffe, Konturen und Striche antippen und ziehen. Nichts wird gezeichnet.':'Select: tap and drag points, handles, contours and strokes. Nothing gets drawn.','Punkte reduzieren':'Reduce points','Weniger Punkte geht nicht, ohne die Form zu verändern.':'Fewer points are not possible without changing the shape.','Kontur':'contour','Konturen':'contours',
 'Handschrift: Bei einem Buchstaben unter „Varianten“ legt „+ Wechsel-Variante“ e.r1 an (dann e.r2 …). Im Text wechseln sich die Formen automatisch ab, so sieht ee nie gleich aus. „+ Kontext-Variante“ legt H.ctx1 an: Du trägst ein, vor oder nach welchen Buchstaben sie kommt (z. B. H vor a). „+ Ligatur“ macht aus zwei Buchstaben eine Verbindung, die im Text automatisch erscheint.':'Handwriting: on a letter, under “Variants”, “+ Alternating variant” creates e.r1 (then e.r2 …). In text the forms alternate automatically, so ee never looks the same. “+ Context variant” creates H.ctx1: enter before or after which letters it appears (e.g. H before a). “+ Ligature” turns two letters into one connected glyph that appears automatically in text.',
@@ -456,8 +456,8 @@ function examples(){
   };
 }
 function freshProject(){
-  const g={};for(const [k,v] of Object.entries(examples()))g[k]={c:v.c,l:0,r:0,v:1};
-  return {name:'Meine Schrift',spacing:60,strength:70,kern:{},gkern:{},groups:{},parts:{},glyphs:g,text:'HOT AVO nono ÖÄ öó\nHamburgefonstiv',example:true,t:0,names:{},fea:'',feaAuto:true,ps:[],fmt:{}};
+  const g={};
+  return {name:'Meine Schrift',spacing:60,strength:70,kern:{},gkern:{},groups:{},parts:{},glyphs:g,text:'HOT AVO nono ÖÄ öó\nHamburgefonstiv',example:false,t:0,names:{},fea:'',feaAuto:true,ps:[],fmt:{}};
 }
 
 /* ---------- geometry ---------- */
@@ -1604,6 +1604,7 @@ function renderInsp(){
     else if((ch===' '||ch==='\u00a0')&&tool!=='kern')parts.push(`<div class="blk"><span class="lbl">${ch===' '?'Leerzeichen':'Geschütztes Leerzeichen'} · Breite</span>${S.mono?'<span class="num">'+S.mono+'</span><span class="note">Monospace: so breit wie alle Zeichen.</span>':`${btn('spw-50','−50')}${btn('spw-10','−')}<span class="num ${S.spaceW?'man':''}">${S.spaceW||autoSpaceW()}</span>${btn('spw10','+')}${btn('spw50','+50')}${S.spaceW?btn('spwauto','Auto'):''}<span class="note">Wortabstand in Einheiten (1000 pro Geviert). Gilt für Leerzeichen und geschütztes Leerzeichen, wird mit exportiert. Auto folgt dem Grundabstand.</span>`}</div>`);
     else if(ch&&ch!==' '&&!sel.size&&!openC)parts.push(`<span class="note">„${esc(disp(ch))}“ ist noch leer. Mit Schreiben, Bézier, Rechteck oder Ellipse direkt in der Zeile zeichnen.</span>`);
   }
+  if(tool!=='kern'&&ch&&!blank(ch)&&!openC&&!editPart&&S.glyphs[ch]&&hasInk(S.glyphs[ch]))parts.push(`<div class="blk"><span class="lbl">${esc(disp(ch))}</span>${btn('gdel','Ganze Glyphe löschen')}</div>`);
   if(tool!=='kern'&&ch&&!blank(ch)&&!sel.size&&!openC){const t=[...S.text],pr=[];const a=t[active-1],b=t[active+1];
     const one=(x,y,s)=>{if(!x||!y||blank(x)||blank(y)||x==='\n'||y==='\n')return '';const k=kernKey(x,y),man=k in S.kern,inf=kernInfo(x,y),v=inf.v;
       return `<b>${esc(disp(x))}${esc(disp(y))}</b>${btn('kp'+s+'-10','−')}<span class="num ${man?'man':inf.src==='g'?'grp':''}">${v}</span>${btn('kp'+s+'+10','+')}${man?btn('kp'+s+'a','Auto'):''}`};
@@ -1667,6 +1668,7 @@ insp.addEventListener('click',e=>{const b=e.target.closest('button[data-act]');i
   if(a==='pdet'&&selPart){partDetach(ch,selPart);return}
   if(a==='pdel'&&selPart&&g){pushUndo();g.u=g.u.filter(x=>x!==selPart);selPart=null;return changed(ch)}
   if(a==='plink'&&selPart){const n=linkMore(ch,selPart);toast(`${n} weitere Buchstaben verknüpft.`);return}
+  if(a==='gdel'&&ch&&S.glyphs[ch]){pushUndo();delete S.glyphs[ch];dirty.add('g:'+ch);sel.clear();selK.clear();selStroke=null;selPart=null;MC.clear();changed(ch);toast('Glyphe gelöscht. Rückgängig mit ↶.');return}
   if(a==='klast'&&g&&g.k&&g.k.length){pushUndo();g.k.pop();return changed(ch)}
   if(a==='kall'&&g&&g.k){pushUndo();g.k=[];return changed(ch)}
   const nud=(dx,dy)=>{pushUndo();const st=grid?10:1;for(const q of sel){q.x+=dx*st;q.y+=dy*st;for(const h of [q.i,q.o])if(h){h[0]+=dx*st;h[1]+=dy*st}}changed(ch)};
@@ -1955,6 +1957,7 @@ fileIn.onchange=async()=>{const f=fileIn.files[0];if(!f)return;try{const o=JSON.
   relayout();fit();renderInsp();schedule();msg('Projekt geladen.')}catch(e){msg('Laden fehlgeschlagen: '+e.message)}fileIn.value=''};
 function confirm2(b,fn){if(b.dataset.armed){delete b.dataset.armed;b.textContent=b.dataset.t;fn();return}b.dataset.t=b.textContent;b.dataset.armed=1;b.textContent='Wirklich? Nochmal tippen';setTimeout(()=>{if(b.dataset.armed){delete b.dataset.armed;b.textContent=b.dataset.t}},3000)}
 document.getElementById('bKernReset').onclick=e=>confirm2(e.currentTarget,()=>{pushUndoMeta();S.kern={};S.gkern={};changed(null);msg('Eigenes Kerning gelöscht (Paare und Gruppen). Rückgängig mit ↶.')});
+document.getElementById('bExLoad').onclick=()=>{let n=0;for(const [k,v] of Object.entries(examples())){if(S.glyphs[k]&&hasInk(S.glyphs[k]))continue;pushUndoFor(k);S.glyphs[k]={c:v.c,l:0,r:0,v:1};dirty.add('g:'+k);n++}MC.clear();changed(null);msg(n?'Beispielformen geladen (H T A V O n o ¨ ´).':'Die Beispielformen sind schon da.')};
 document.getElementById('bExamples').onclick=e=>confirm2(e.currentTarget,()=>{for(const k of Object.keys(examples())){pushUndoFor(k);delete S.glyphs[k];dirty.add('g:'+k)}S.example=false;MC.clear();changed(null);msg('Beispielformen entfernt.')});
 function pushUndoFor(ch){undoS.push(snap(ch));updButtons()}
 
@@ -1983,7 +1986,7 @@ document.addEventListener('selectionchange',()=>{if(document.activeElement!==ed)
 ed.addEventListener('focus',()=>{renderInsp();draw()});ed.addEventListener('blur',()=>{renderInsp();draw()});
 cv.addEventListener('dblclick',e=>{if(e.pointerType!=='touch')focusEd()});
 /* ---------- boot ---------- */
-S=loadLocal()||freshProject();caret=[...S.text].length;
+S=loadLocal()||freshProject();if(S.example){S.glyphs={};S.example=false}caret=[...S.text].length;
 syncUI();syncEd();updButtons();
 new ResizeObserver(()=>{const first=!CW;resize();if(first)fit()}).observe(cv);
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change',draw);
