@@ -9,7 +9,7 @@ const psx=X=>X*view.s+view.ox,psy=Y=>-Y*view.s+view.oy,pwx=p=>(p-view.ox)/view.s
 /* glyph-local coordinates: sx/sy/wx/wy work in the frame A of one item (normally the active glyph) */
 let A={x0:0,by:0,k:1};const frameOf=it=>it&&it.x0!=null?{x0:it.x0,by:it.by,k:it.k}:{x0:0,by:0,k:1};const useA=()=>{A=frameOf(curItem())};
 const sx=x=>psx(A.x0+A.k*x),sy=y=>psy(A.by+A.k*y),wx=p=>(pwx(p)-A.x0)/A.k,wy=p=>(pwy(p)-A.by)/A.k;
-function botPad(){const gp=document.getElementById('genPanel'),pp=document.getElementById('pxPanel');if(pp&&!pp.hidden)return pp.offsetHeight+30;if(gp&&!gp.hidden)return gp.offsetHeight+30;if(clean)return 30;
+function botPad(){const gp=document.getElementById('genPanel');if(gp&&!gp.hidden)return gp.offsetHeight+30;if(clean)return 30;
   const d=document.querySelector('.dock'),c=cv.getBoundingClientRect();if(!d||!d.offsetParent)return 40;return Math.max(40,c.bottom-d.getBoundingClientRect().top+12)}
 function sidePads(){if(clean)return [24,24];const c=cv.getBoundingClientRect(),l=document.querySelector('.rail.left'),r=document.querySelector('.rail.right');
   const L=l&&l.offsetParent?l.getBoundingClientRect().right-c.left+14:20,Rr=r&&r.offsetParent?c.right-r.getBoundingClientRect().left+14:20;return CW>700?[L,Rr]:[20,20]}

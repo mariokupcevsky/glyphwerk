@@ -7,7 +7,7 @@ const gIn={w:'gW',c:'gC',a:'gA',wd:'gWd',xh:'gX',cap:'gCap',sh:'gSh',ov:'gOv',wc
 const gMx=k=>k==='xh'||k==='cap';
 const gVal=k=>gMx(k)?(k==='xh'?XH:CAP):genP[k];
 function genSync(){for(const [k,id] of Object.entries(gIn)){const el=document.getElementById(id);el.value=gVal(k);document.getElementById(id+'v').textContent=gVal(k)+gUnit[k]}
-  document.getElementById('gEnd').setAttribute('aria-pressed',genP.e==='f');document.getElementById('gAll').setAttribute('aria-pressed',genAll)}
+  document.getElementById('gEnd').setAttribute('aria-pressed',genP.e==='f');}
 function genRestoreBase(){for(const [ch,sn] of Object.entries(genBase.snaps)){const d=JSON.parse(sn.d);
   if(d){const g=S.glyphs[ch]||(S.glyphs[ch]={v:0});g.c=d.c;g.k=d.k;g.l=d.l;g.r=d.r;g.v=(g.v||0)+1}else delete S.glyphs[ch]}}
 function genApply(){if(!genBase)return;genRestoreBase();const G=genSkel(genP);
@@ -28,10 +28,9 @@ function genClose(keep){if(!genBase)return;cancelAnimationFrame(genRaf);
     genBase=null;S.t=Date.now();MC.clear();relayout();draw();renderInsp();schedule();alertMsg(`${ch.length} Buchstaben aus Regeln übernommen. Rückgängig macht alles in einem Schritt zurück.`)}
   else{genRestoreBase();S.mx=JSON.parse(genBase.mx);genP=JSON.parse(genBase.gen);applyMx();syncMx();genBase=null;MC.clear();relayout();draw();renderInsp();alertMsg('Regeln verworfen.')}
   document.getElementById('genPanel').hidden=true;document.querySelector('.stage').classList.remove('gen');document.getElementById('bGen').setAttribute('aria-pressed','false');fit()}
-document.getElementById('bGen').onclick=()=>{if(typeof pxOpen!=='undefined'&&pxOpen)pxToggle(false);genBase?genClose(true):genOpen()};
+document.getElementById('bGen').onclick=()=>{genBase?genClose(true):genOpen()};
 for(const [k,id] of Object.entries(gIn))document.getElementById(id).addEventListener('input',e=>{const v=+e.target.value;if(gMx(k)){S.mx=S.mx||{};S.mx[k]=v;applyMx();MC.clear();dirty.add('meta')}else genP[k]=v;document.getElementById(id+'v').textContent=v+gUnit[k];genQueue()});
 document.getElementById('gEnd').onclick=()=>{genP.e=genP.e==='f'?'r':'f';genSync();genQueue()};
-document.getElementById('gAll').onclick=()=>{genAll=!genAll;genSync();genQueue()};
 document.getElementById('gReset').onclick=()=>{genP={...GENP0};S.mx={};applyMx();MC.clear();dirty.add('meta');genSync();genQueue()};
 document.getElementById('gCancel').onclick=()=>genClose(false);
 document.getElementById('gOk').onclick=()=>genClose(true);

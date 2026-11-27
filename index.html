@@ -67,20 +67,6 @@ pre.code{min-height:2.5em;max-height:220px}
 #tFeat label{display:flex;gap:4px;align-items:center;font:13px var(--f-mono);color:var(--ink);min-width:0}
 .genp{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom,0px));width:min(820px,calc(100% - 20px));box-sizing:border-box;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 4px 18px rgb(0 0 0 / .12);padding:10px 12px;z-index:2}
 .genp[hidden]{display:none}
-.px-wrap{display:flex;gap:14px;flex-wrap:nowrap;align-items:flex-start}
-@media (max-width:640px){.px-wrap{flex-wrap:wrap}}
-.px-left{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
-.px-bar{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
-.px-bar button,.px-step button{min-height:36px;min-width:36px;padding:4px 9px}
-#pxPanel{padding:8px 10px}#pxPanel .msg{margin:0;min-height:1.2em;font-size:12px}
-#pxCv{touch-action:none;background:var(--bg);border:1px solid var(--line);border-radius:8px;max-width:100%}
-.px-right{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
-.px-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.px-row label{min-width:6.8em;font-size:13px;color:var(--muted)}
-.px-row input[type=range]{flex:1;min-width:110px}
-.px-row input[type=number]{width:4.2em;font:500 14px var(--f-mono);padding:6px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
-.px-row input.bad{border-color:#d33}
-.px-step{display:flex;gap:6px;align-items:center}
 .gp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:4px 14px}
 .gp-grid label{display:flex;flex-direction:column;gap:2px;font-size:12px;color:var(--muted)}
 .gp-grid label span{display:flex;justify-content:space-between}
@@ -89,7 +75,7 @@ pre.code{min-height:2.5em;max-height:220px}
 .gp-act{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}
 .gp-act .grow{flex:1}
 .stage.gen .dock{display:none}
-body.clean header,body.clean .rail,body.clean .dock,body.clean #insp,body.clean .hint,body.clean .genp,body.clean #pxPanel{display:none!important}
+body.clean header,body.clean .rail,body.clean .dock,body.clean #insp,body.clean .hint,body.clean .genp{display:none!important}
 body.clean .stage{border-color:transparent}
 .cleanbar{position:absolute;right:10px;top:10px;display:none;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px 8px;font-size:12px;color:var(--muted);opacity:.85}
 body.clean .cleanbar{display:flex}
@@ -144,6 +130,7 @@ body.clean .cleanbar{display:flex}
   .sheet>div{max-height:90%}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
 </style>
 </head>
 <body>
@@ -152,7 +139,7 @@ body.clean .cleanbar{display:flex}
     <div class="brand">Glyphwerk<small id="fontNameLbl">Meine Schrift</small></div>
     <input id="txt" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Text zum Bearbeiten">
     <span class="status" id="status">lädt…</span>
-    <div class="grp"><button id="bFile">Datei</button><button id="bGen" aria-pressed="false" title="Schrift aus Regeln erzeugen">Regeln</button><button id="bSet">Zeichensatz</button><button id="bFea">Features</button><button id="bTest">Probetext</button><button id="bExp">Schrift &amp; Export</button><button id="bFb">Feedback</button></div><button id="bPx" class="solid" aria-pressed="false" title="Pixel-Raster">Raster</button><button id="bLang" class="solid" title="Sprache" aria-label="Sprache">EN</button>
+    <div class="grp"><button id="bFile">Datei</button><button id="bGen" aria-pressed="false" title="Schrift aus Regeln erzeugen">Regeln</button><button id="bSet">Zeichensatz</button><button id="bFea">Features</button><button id="bTest">Probetext</button><button id="bExp">Schrift &amp; Export</button><button id="bFb">Feedback</button></div><button id="bLang" class="solid" title="Sprache" aria-label="Sprache">EN</button>
   </header>
   <div class="stage"><canvas id="cv"></canvas><div class="cleanbar" id="cleanBar"><label for="blurR">Blur</label><input id="blurR" type="range" min="0" max="12" step="0.5" value="0"><b id="blurV" class="num">0</b><button class="solid" id="bCleanX">Zurück (E)</button></div><textarea id="ed" aria-label="Text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" rows="1"></textarea><div class="hint" id="hint"></div>
     <div class="rail left" aria-label="Navigation">
@@ -198,25 +185,6 @@ body.clean .cleanbar{display:flex}
       <button id="bUndo" title="Rückgängig" aria-label="Rückgängig">↶</button>
       <button id="bRedo" title="Wiederholen" aria-label="Wiederholen">↷</button>
     </div>
-    <div class="genp" id="pxPanel" hidden role="group" aria-label="Pixel-Raster">
-      <div class="px-wrap">
-        <div class="px-left"><canvas id="pxCv" aria-label="Raster"></canvas></div>
-        <div class="px-right">
-          <div class="px-bar"><button class="solid" id="pxPrev" aria-label="Vorheriger Buchstabe">‹</button><b id="pxCh" class="num"></b><button class="solid" id="pxNext" aria-label="Nächster Buchstabe">›</button>
-            <button class="solid" id="pxDraw" aria-pressed="true">Malen</button><button class="solid" id="pxErase" aria-pressed="false">Radieren</button>
-            <button class="solid" id="pxUndo" aria-label="Rückgängig">↶</button><button class="solid" id="pxRedo" aria-label="Wiederholen">↷</button></div>
-          <div class="px-bar"><button class="solid" id="pxMir">Spiegeln</button><button class="solid" id="pxSl" aria-label="Nach links">←</button><button class="solid" id="pxSr" aria-label="Nach rechts">→</button><button class="solid" id="pxClr">Leeren</button><button class="solid" id="pxFromDraw" title="Zeichnung auf das Raster übertragen">Aus Zeichnung</button></div>
-          <div class="px-row"><label for="pxR">Pixelrundung</label><input type="range" id="pxR" min="0" max="100"><input type="number" id="pxRn" min="0" max="100" step="1"></div>
-          <div class="px-row"><label for="pxJ">Liquid-Brücke</label><input type="range" id="pxJ" min="0" max="100"><input type="number" id="pxJn" min="0" max="100" step="1"></div>
-          <div class="px-row"><label for="pxG">Zellabstand</label><input type="range" id="pxG" min="0" max="80"><input type="number" id="pxGn" min="0" max="95" step="1"></div>
-          <div class="px-bar"><span class="note">Verbinden</span><span class="seg" role="group" aria-label="Verbinden"><button class="solid" data-pxm="0">Aus</button><button class="solid" data-pxm="1">Waagr.</button><button class="solid" data-pxm="2">Senkr.</button><button class="solid" data-pxm="3">Beides</button></span></div>
-          <div class="px-bar"><label class="note"><input type="checkbox" id="pxOut"> Nur Kontur</label><span class="px-row" style="flex:1"><label for="pxOT">Konturdicke</label><input type="range" id="pxOT" min="5" max="45"></span></div>
-          <div class="px-bar"><label class="note"><input type="checkbox" id="pxDiag"> Diagonal verbinden</label><label class="note"><input type="checkbox" id="pxStretch" checked> Beim Ändern der Größe strecken</label></div>
-          <div class="px-bar"><span class="px-step"><button class="solid" data-pxs="c-">−</button><b id="pxCols" class="num"></b><button class="solid" data-pxs="c+">+</button><span class="note">Spalten</span><button class="solid" data-pxs="r-">−</button><b id="pxRows" class="num"></b><button class="solid" data-pxs="r+">+</button><span class="note">Zeilen</span></span><button class="solid" id="pxStarter">Starter-Alphabet</button><button class="solid" id="pxRand">Zufallssymbol</button><button class="solid" id="pxNew">+ Symbol</button><button class="primary" id="pxDone">Fertig</button></div>
-          <div class="msg" id="pxMsg" role="status"></div>
-        </div>
-      </div>
-    </div>
     <div class="genp" id="genPanel" hidden role="group" aria-label="Schrift aus Regeln">
       <div class="gp-grid">
         <label><span>Stärke <b id="gWv"></b></span><input type="range" id="gW" min="16" max="220" step="2"></label>
@@ -234,7 +202,6 @@ body.clean .cleanbar{display:flex}
       </div>
       <div class="gp-act">
         <button id="gEnd" class="solid" aria-pressed="false">Enden flach</button>
-        <button id="gAll" class="solid" aria-pressed="false" title="Auch Buchstaben ersetzen, die du selbst gezeichnet hast">Gezeichnete ersetzen</button>
         <button id="gReset" class="solid">Standard</button>
         <span class="grow"></span>
         <button id="gCancel" class="solid">Verwerfen</button>
@@ -497,81 +464,6 @@ function poly(a){const p=[];for(let k=0;k<a.length;k+=2)p.push(P(a[k],a[k+1]));r
 function ellipse(cx,cy,rx,ry){const k=.5523;return {z:true,p:[
   P(cx+rx,cy,[cx+rx,cy-ry*k],[cx+rx,cy+ry*k],1),P(cx,cy+ry,[cx+rx*k,cy+ry],[cx-rx*k,cy+ry],1),
   P(cx-rx,cy,[cx-rx,cy+ry*k],[cx-rx,cy-ry*k],1),P(cx,cy-ry,[cx-rx*k,cy-ry],[cx+rx*k,cy-ry],1)]}}
-/* PXGEO-BEGIN: pixel-grid -> outline (cell units, y down). Original implementation. */
-function pxOutline(on,cols,rows,par){
-  if(par.ins>0&&!par._in)return pxOutline(on,cols,rows,{...par,ins:0}).concat(pxOutline(on,cols,rows,{...par,_in:Math.min(.45,par.ins)}));
-  const ins=par._in||0;
-  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-  const g=clamp(+par.gap||0,0,95)/100,flush=g<1e-6,mh=!!par.mh,mv=!!par.mv,md=!!par.md;
-  const body=1-g,pr=clamp(+par.r||0,0,100)/100,pj=clamp(+par.j||0,0,100)/100;
-  let rho=Math.max(0,pr*body/2-ins),jr=pj*body/2;
-  const wmin=Math.max(.3*body,1e-3),avail=body-wmin;
-  if(2*(rho+jr)>avail)jr=Math.max(0,avail/2-rho);
-  const wn=Math.max(wmin,body-2*(rho+jr));
-  const O=(c,r)=>c>=0&&r>=0&&c<cols&&r<rows&&!!on[r][c];
-  const R=[];// rectangles x0,x1,y0,y1
-  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){if(!on[r][c])continue;
-    {let x0=flush?c:c+g/2,x1=flush?c+1:c+1-g/2,y0=flush?r:r+g/2,y1=flush?r+1:r+1-g/2;
-      if(ins){if(!O(c-1,r))x0+=ins;if(!O(c+1,r))x1-=ins;if(!O(c,r-1))y0+=ins;if(!O(c,r+1))y1-=ins;if(x1-x0<1e-3||y1-y0<1e-3)continue}
-      R.push([x0,x1,y0,y1])}
-    if(md&&!ins){const hw=g/2+wn/2;
-      if(O(c+1,r+1)&&!O(c+1,r)&&!O(c,r+1))R.push([c+1-hw,c+1+hw,r+1-hw,r+1+hw]);
-      if(O(c-1,r+1)&&!O(c-1,r)&&!O(c,r+1))R.push([c-hw,c+hw,r+1-hw,r+1+hw])}
-    if(flush)continue;
-    if(mh&&O(c+1,r))R.push([c+1-g/2,c+1+g/2,r+.5-wn/2,r+.5+wn/2]);
-    if(mv&&O(c,r+1))R.push([c+.5-wn/2,c+.5+wn/2,r+1-g/2,r+1+g/2]);
-    if(mh&&mv&&O(c+1,r)&&O(c,r+1)&&O(c+1,r+1))R.push([c+1-g/2,c+1+g/2,r+1-g/2,r+1+g/2])}
-  if(!R.length)return [];
-  const q=v=>Math.round(v*1e6)/1e6,ux=new Set(),uy=new Set();
-  for(const a of R){ux.add(q(a[0]));ux.add(q(a[1]));uy.add(q(a[2]));uy.add(q(a[3]))}
-  const xs=[...ux].sort((a,b)=>a-b),ys=[...uy].sort((a,b)=>a-b),W=xs.length-1,H=ys.length-1;
-  const xi=new Map(xs.map((v,i)=>[v,i])),yi=new Map(ys.map((v,i)=>[v,i]));
-  const F=Array.from({length:H},()=>new Uint8Array(W));
-  for(const a of R){const i0=xi.get(q(a[0])),i1=xi.get(q(a[1])),j0=yi.get(q(a[2])),j1=yi.get(q(a[3]));
-    for(let j=j0;j<j1;j++)for(let i=i0;i<i1;i++)F[j][i]=1}
-  const f=(i,j)=>i>=0&&j>=0&&i<W&&j<H&&F[j][i]===1;
-  // directed boundary edges, filled area on the right (clockwise on screen, y down)
-  const out=new Map(),key=(i,j)=>i*(H+1)+j,add=(a,b,c,d)=>{const k=key(a,b);if(!out.has(k))out.set(k,[]);out.get(k).push([c,d])};
-  for(let j=0;j<H;j++)for(let i=0;i<W;i++){if(!F[j][i])continue;
-    if(!f(i,j-1))add(i,j,i+1,j);
-    if(!f(i+1,j))add(i+1,j,i+1,j+1);
-    if(!f(i,j+1))add(i+1,j+1,i,j+1);
-    if(!f(i-1,j))add(i,j+1,i,j)}
-  const loops=[];
-  for(const [k0,lst0] of out){
-    while(lst0.length){
-      let [i,j]=[Math.floor(k0/(H+1)),k0%(H+1)];const si=i,sj=j;let nx=lst0.pop();const pts=[[i,j]];let dir=[nx[0]-i,nx[1]-j];i=nx[0];j=nx[1];
-      let guard=0;
-      while(!(i===si&&j===sj)&&guard++<1e6){pts.push([i,j]);const l=out.get(key(i,j));if(!l||!l.length)break;
-        const rt=[-dir[1],dir[0]];let pick=0,best=-9;
-        for(let t=0;t<l.length;t++){const d=[l[t][0]-i,l[t][1]-j];const sc=(d[0]===rt[0]&&d[1]===rt[1])?3:(d[0]===dir[0]&&d[1]===dir[1])?2:1;if(sc>best){best=sc;pick=t}}
-        nx=l.splice(pick,1)[0];dir=[nx[0]-i,nx[1]-j];i=nx[0];j=nx[1]}
-      loops.push(pts)}}
-  const res=[];
-  for(const lp of loops){
-    // to coordinates, drop collinear
-    let P=lp.map(([i,j])=>[xs[i],ys[j]]);
-    let ch=true;while(ch&&P.length>=4){ch=false;const n=P.length,keep=[];
-      for(let k=0;k<n;k++){const a=P[(k+n-1)%n],b=P[k],c=P[(k+1)%n];const cr=(b[0]-a[0])*(c[1]-b[1])-(b[1]-a[1])*(c[0]-b[0]);
-        if(Math.abs(cr)<1e-9)ch=true;else keep.push(b)}
-      P=keep}
-    const n=P.length;if(n<3)continue;
-    const cv=[],len=[],rad=[];
-    for(let k=0;k<n;k++){const a=P[(k+n-1)%n],b=P[k],c=P[(k+1)%n];
-      const cr=(b[0]-a[0])*(c[1]-b[1])-(b[1]-a[1])*(c[0]-b[0]);cv.push(cr>0);
-      len.push(Math.hypot(c[0]-b[0],c[1]-b[1]));rad.push(cr>0?rho:jr)}
-    const fe=len.map((L,k)=>{const s=rad[k]+rad[(k+1)%n];return s>L&&s>0?L/s:1});
-    const fr=rad.map((r0,k)=>r0*Math.min(fe[k],fe[(k+n-1)%n]));
-    const pts=[],K=.5523;
-    for(let k=0;k<n;k++){const a=P[(k+n-1)%n],b=P[k],c=P[(k+1)%n],r0=fr[k];
-      if(r0<1e-6){pts.push({x:b[0],y:b[1],i:null,o:null});continue}
-      const d1=Math.hypot(a[0]-b[0],a[1]-b[1]),d2=Math.hypot(c[0]-b[0],c[1]-b[1]);
-      const t1=[b[0]+(a[0]-b[0])/d1*r0,b[1]+(a[1]-b[1])/d1*r0],t2=[b[0]+(c[0]-b[0])/d2*r0,b[1]+(c[1]-b[1])/d2*r0];
-      pts.push({x:t1[0],y:t1[1],i:null,o:[t1[0]+(b[0]-t1[0])*K,t1[1]+(b[1]-t1[1])*K]});
-      pts.push({x:t2[0],y:t2[1],i:[t2[0]+(b[0]-t2[0])*K,t2[1]+(b[1]-t2[1])*K],o:null})}
-    res.push(pts)}
-  return res}
-/* PXGEO-END */
 function examples(){
   const narch={z:true,p:[P(410,0),P(500,0),P(500,340,null,[500,450]),P(310,510,[430,510],[210,510],1),
     P(60,400,[130,470]),P(60,320,null,[120,390]),P(260,425,[190,425],[360,425],1),P(410,320,[410,390])]};
@@ -1398,7 +1290,7 @@ const psx=X=>X*view.s+view.ox,psy=Y=>-Y*view.s+view.oy,pwx=p=>(p-view.ox)/view.s
 /* glyph-local coordinates: sx/sy/wx/wy work in the frame A of one item (normally the active glyph) */
 let A={x0:0,by:0,k:1};const frameOf=it=>it&&it.x0!=null?{x0:it.x0,by:it.by,k:it.k}:{x0:0,by:0,k:1};const useA=()=>{A=frameOf(curItem())};
 const sx=x=>psx(A.x0+A.k*x),sy=y=>psy(A.by+A.k*y),wx=p=>(pwx(p)-A.x0)/A.k,wy=p=>(pwy(p)-A.by)/A.k;
-function botPad(){const gp=document.getElementById('genPanel'),pp=document.getElementById('pxPanel');if(pp&&!pp.hidden)return pp.offsetHeight+30;if(gp&&!gp.hidden)return gp.offsetHeight+30;if(clean)return 30;
+function botPad(){const gp=document.getElementById('genPanel');if(gp&&!gp.hidden)return gp.offsetHeight+30;if(clean)return 30;
   const d=document.querySelector('.dock'),c=cv.getBoundingClientRect();if(!d||!d.offsetParent)return 40;return Math.max(40,c.bottom-d.getBoundingClientRect().top+12)}
 function sidePads(){if(clean)return [24,24];const c=cv.getBoundingClientRect(),l=document.querySelector('.rail.left'),r=document.querySelector('.rail.right');
   const L=l&&l.offsetParent?l.getBoundingClientRect().right-c.left+14:20,Rr=r&&r.offsetParent?c.right-r.getBoundingClientRect().left+14:20;return CW>700?[L,Rr]:[20,20]}
@@ -1682,7 +1574,7 @@ function renderTabs(parts){
   insp.setAttribute('role','tabpanel');
   insp.innerHTML=by[inspTab].join('')||'<span class="note">Hier gibt es für die aktuelle Auswahl nichts einzustellen.</span>'}
 document.getElementById('inspTabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;inspTab=b.dataset.tab;renderInsp()});
-function renderInsp(){if(typeof pxOpen!=='undefined'&&pxOpen)pxDrawGrid();
+function renderInsp(){
   const parts=[];const ch=curCh();const it=curItem();
   if(tool==='brush'&&(nib.n==='broad'||nib.ov))parts.push(`<div class="blk"><span class="lbl">Neigung</span><span class="num">${nib.tilt?'vom Pencil':nib.a+'°'}</span><button class="solid" data-act="tilt" aria-pressed="${nib.tilt}">Neigung vom Pencil nehmen</button></div>`);
   if(tool==='select')parts.push(`<div class="blk"><span class="lbl">Auswahl</span><span class="seg">${btn('sm-r','▭ Rechteck','aria-pressed="'+(selMode==='r')+'"')}${btn('sm-l','Lasso','aria-pressed="'+(selMode==='l')+'"')}</span><span class="note">Mit dem Stift ins Leere ziehen wählt aus. Ausgewähltes ziehen verschiebt es.</span></div>`);
@@ -2040,7 +1932,7 @@ const gIn={w:'gW',c:'gC',a:'gA',wd:'gWd',xh:'gX',cap:'gCap',sh:'gSh',ov:'gOv',wc
 const gMx=k=>k==='xh'||k==='cap';
 const gVal=k=>gMx(k)?(k==='xh'?XH:CAP):genP[k];
 function genSync(){for(const [k,id] of Object.entries(gIn)){const el=document.getElementById(id);el.value=gVal(k);document.getElementById(id+'v').textContent=gVal(k)+gUnit[k]}
-  document.getElementById('gEnd').setAttribute('aria-pressed',genP.e==='f');document.getElementById('gAll').setAttribute('aria-pressed',genAll)}
+  document.getElementById('gEnd').setAttribute('aria-pressed',genP.e==='f');}
 function genRestoreBase(){for(const [ch,sn] of Object.entries(genBase.snaps)){const d=JSON.parse(sn.d);
   if(d){const g=S.glyphs[ch]||(S.glyphs[ch]={v:0});g.c=d.c;g.k=d.k;g.l=d.l;g.r=d.r;g.v=(g.v||0)+1}else delete S.glyphs[ch]}}
 function genApply(){if(!genBase)return;genRestoreBase();const G=genSkel(genP);
@@ -2061,117 +1953,13 @@ function genClose(keep){if(!genBase)return;cancelAnimationFrame(genRaf);
     genBase=null;S.t=Date.now();MC.clear();relayout();draw();renderInsp();schedule();alertMsg(`${ch.length} Buchstaben aus Regeln übernommen. Rückgängig macht alles in einem Schritt zurück.`)}
   else{genRestoreBase();S.mx=JSON.parse(genBase.mx);genP=JSON.parse(genBase.gen);applyMx();syncMx();genBase=null;MC.clear();relayout();draw();renderInsp();alertMsg('Regeln verworfen.')}
   document.getElementById('genPanel').hidden=true;document.querySelector('.stage').classList.remove('gen');document.getElementById('bGen').setAttribute('aria-pressed','false');fit()}
-document.getElementById('bGen').onclick=()=>{if(typeof pxOpen!=='undefined'&&pxOpen)pxToggle(false);genBase?genClose(true):genOpen()};
+document.getElementById('bGen').onclick=()=>{genBase?genClose(true):genOpen()};
 for(const [k,id] of Object.entries(gIn))document.getElementById(id).addEventListener('input',e=>{const v=+e.target.value;if(gMx(k)){S.mx=S.mx||{};S.mx[k]=v;applyMx();MC.clear();dirty.add('meta')}else genP[k]=v;document.getElementById(id+'v').textContent=v+gUnit[k];genQueue()});
 document.getElementById('gEnd').onclick=()=>{genP.e=genP.e==='f'?'r':'f';genSync();genQueue()};
-document.getElementById('gAll').onclick=()=>{genAll=!genAll;genSync();genQueue()};
 document.getElementById('gReset').onclick=()=>{genP={...GENP0};S.mx={};applyMx();MC.clear();dirty.add('meta');genSync();genQueue()};
 document.getElementById('gCancel').onclick=()=>genClose(false);
 document.getElementById('gOk').onclick=()=>genClose(true);
 
-
-/* ---------- pixel grid mode: cells -> shared geometry -> real outlines ----------
-   Hand-painted cells (or a rasterised drawing) are the input; the global shape rules (roundness, liquid bridge,
-   cell gap, merge direction) turn them into ordinary Bézier contours, so preview, spacing and TTF/OTF export just work.
-   A glyph keeps its cells in g.px; if its outline is later edited by hand, the rules stop overwriting it. */
-const PX0={cols:5,rows:9,base:2,r:0,j:70,gap:0,m:3,d:1};
-const pxP=()=>({...PX0,...(S.px||{})});
-const pxCell=()=>{const p=pxP();return CAP/Math.max(1,p.rows-p.base)};
-function pxHash(c){const t=JSON.stringify(c);let h=5381;for(let i=0;i<t.length;i++)h=((h<<5)+h+t.charCodeAt(i))|0;return h}
-function pxBlank(){const p=pxP();return Array.from({length:p.rows},()=>'.'.repeat(p.cols))}
-function pxOn(cells,p){return Array.from({length:p.rows},(_,r)=>Array.from({length:p.cols},(_,c)=>(cells[r]||'')[c]==='#'))}
-function pxContours(cells){const p=pxP(),u=pxCell(),loops=pxOutline(pxOn(cells,p),p.cols,p.rows,{r:p.r,j:p.j,gap:p.gap,mh:p.m&1,mv:p.m&2,md:!!p.d,ins:p.o?(+p.ot||20)/100:0}),top=(p.rows-p.base)*u,o=[];
-  const X=x=>Math.round(x*u*100)/100,Y=y=>Math.round((top-y*u)*100)/100;
-  for(const l of loops)o.push({z:true,p:l.map(q=>P(X(q.x),Y(q.y),q.i?[X(q.i[0]),Y(q.i[1])]:null,q.o?[X(q.o[0]),Y(q.o[1])]:null,!!(q.i||q.o)))});return o}
-function pxRegen(ch,force){const g=S.glyphs[ch];if(!g||!g.px)return false;
-  if(!force&&g.px.h!==pxHash(g.c)){g.px=null;return false}
-  g.c=pxContours(g.px.cells);g.px.h=pxHash(g.c);g.v=(g.v||0)+1;return true}
-function pxRegenAll(){let n=0;for(const ch of Object.keys(S.glyphs))if(S.glyphs[ch].px&&pxRegen(ch)){dirty.add('g:'+ch);n++}MC.clear();return n}
-let pxOpen=false,pxTool='draw',pxPaint=null,pxRaf=0;
-const pxMsg=t=>{document.getElementById('pxMsg').textContent=t};
-function pxGlyph(create){const ch=curCh();if(!ch||blank(ch))return null;let g=S.glyphs[ch];
-  if(!g&&create)g=S.glyphs[ch]={c:[],l:0,r:0,v:0};
-  if(g&&create&&!g.px){if(hasInk(g)&&(g.c.length||(g.k&&g.k.length)))return g;g.px={cells:pxBlank(),h:pxHash(g.c)}}
-  return g}
-function pxDrawGrid(){const cv=document.getElementById('pxCv');if(!cv)return;const p=pxP(),ch=curCh(),g=ch&&S.glyphs[ch],cells=(g&&g.px&&g.px.cells)||pxBlank();
-  const cs=Math.max(14,Math.min(28,Math.floor(Math.min(CW-40,300)/Math.max(p.cols+1,1)))),lab=16,W=lab+p.cols*cs,H=lab+p.rows*cs,dpr=window.devicePixelRatio||1;
-  cv.style.width=W+'px';cv.style.height=H+'px';cv.width=W*dpr;cv.height=H*dpr;const x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);
-  const st=getComputedStyle(document.documentElement),ink=st.getPropertyValue('--ink').trim()||'#111',line=st.getPropertyValue('--line').trim()||'#ccc',mut=st.getPropertyValue('--muted').trim()||'#666',acc=st.getPropertyValue('--accent').trim()||'#2446c7';
-  x.clearRect(0,0,W,H);x.font='10px "IBM Plex Mono",monospace';x.fillStyle=mut;x.textAlign='center';x.textBaseline='middle';
-  for(let c=0;c<p.cols;c++)x.fillText(String(c+1),lab+c*cs+cs/2,lab/2);x.textAlign='right';
-  for(let r=0;r<p.rows;r++)x.fillText(String(r+1),lab-3,lab+r*cs+cs/2);
-  for(let r=0;r<p.rows;r++)for(let c=0;c<p.cols;c++){if((cells[r]||'')[c]==='#'){x.fillStyle=acc;x.globalAlpha=.85;x.fillRect(lab+c*cs+1,lab+r*cs+1,cs-2,cs-2);x.globalAlpha=1}}
-  x.strokeStyle=line;x.lineWidth=1;x.beginPath();for(let c=0;c<=p.cols;c++){x.moveTo(lab+c*cs+.5,lab);x.lineTo(lab+c*cs+.5,H)}for(let r=0;r<=p.rows;r++){x.moveTo(lab,lab+r*cs+.5);x.lineTo(W,lab+r*cs+.5)}x.stroke();
-  x.strokeStyle=ink;x.globalAlpha=.5;x.beginPath();const by=lab+(p.rows-p.base)*cs+.5;x.moveTo(lab,by);x.lineTo(W,by);x.stroke();x.globalAlpha=1;
-  cv._m={cs,lab,p};document.getElementById('pxCh').textContent=ch&&!blank(ch)?disp(ch):'–';
-  for(const b of document.querySelectorAll('[data-pxm]'))b.setAttribute('aria-pressed',String(+b.dataset.pxm===p.m));
-  document.getElementById('pxDiag').checked=!!p.d;document.getElementById('pxOut').checked=!!p.o;document.getElementById('pxOT').value=p.ot||20;document.getElementById('pxCols').textContent=p.cols;document.getElementById('pxRows').textContent=p.rows;
-  for(const [k,id] of [['r','pxR'],['j','pxJ'],['gap','pxG']]){const e=document.getElementById(id);if(document.activeElement!==e)e.value=Math.min(+e.max,p[k]);const n=document.getElementById(id+'n');if(document.activeElement!==n){n.value=p[k];n.classList.remove('bad')}}}
-function pxApply(ch,cells,undoDone){const g=pxGlyph(true);if(!g||!g.px)return;if(!undoDone)pushUndo();g.px.cells=cells;pxRegen(ch,true);dirty.add('g:'+ch);MC.clear();changed(ch);pxDrawGrid()}
-function pxCellAt(e){const cv=document.getElementById('pxCv'),m=cv._m,r=cv.getBoundingClientRect(),x=(e.clientX-r.left-m.lab)/m.cs,y=(e.clientY-r.top-m.lab)/m.cs,c=Math.floor(x),rr=Math.floor(y);
-  return c>=0&&rr>=0&&c<m.p.cols&&rr<m.p.rows?[c,rr]:null}
-function pxSet(cells,c,r,v){const row=(cells[r]||'.'.repeat(pxP().cols)).split('');row[c]=v?'#':'.';cells[r]=row.join('')}
-(()=>{const cv=document.getElementById('pxCv');
-  cv.addEventListener('pointerdown',e=>{const ch=curCh();const g=pxGlyph(true);if(!g||!g.px){pxMsg('Dieser Buchstabe hat eine Zeichnung. „Aus Zeichnung“ überträgt sie aufs Raster.');return}
-    const cc=pxCellAt(e);if(!cc)return;cv.setPointerCapture(e.pointerId);pushUndo();const cells=g.px.cells.slice(),cur=(cells[cc[1]]||'')[cc[0]]==='#';
-    const erase=pxTool==='erase'||e.button===2||(e.buttons&2)||(e.pointerType==='mouse'&&e.button===2);pxPaint={ch,v:erase?false:(pxTool==='draw'?!cur:true),cells};
-    if(pxTool==='draw'&&!erase&&!cur)pxPaint.v=true;pxPaint.v=erase?false:pxPaint.v;pxSet(cells,cc[0],cc[1],pxPaint.v);pxApply(ch,cells,true)});
-  cv.addEventListener('pointermove',e=>{if(!pxPaint)return;const cc=pxCellAt(e);if(!cc)return;if(((pxPaint.cells[cc[1]]||'')[cc[0]]==='#')===pxPaint.v)return;pxSet(pxPaint.cells,cc[0],cc[1],pxPaint.v);pxApply(pxPaint.ch,pxPaint.cells,true)});
-  const end=()=>{pxPaint=null};cv.addEventListener('pointerup',end);cv.addEventListener('pointercancel',end);cv.addEventListener('contextmenu',e=>e.preventDefault())})();
-function pxEdit(fn){const ch=curCh();const g=pxGlyph(true);if(!g||!g.px)return;const p=pxP(),c=fn(g.px.cells.map(r=>r.padEnd(p.cols,'.')),p);if(c)pxApply(ch,c)}
-document.getElementById('pxUndo').onclick=()=>{undo();pxDrawGrid()};document.getElementById('pxRedo').onclick=()=>{redo();pxDrawGrid()};
-document.getElementById('pxRand').onclick=()=>pxEdit((c,p)=>{const top=p.rows-p.base,half=Math.ceil(p.cols/2),out=Array.from({length:p.rows},()=>Array(p.cols).fill('.'));
-  const dens=.35+Math.random()*.3;let n=0;
-  for(let r=0;r<top;r++)for(let k=0;k<half;k++)if(Math.random()<dens){out[r][k]=out[r][p.cols-1-k]='#';n++}
-  if(!n)out[Math.floor(top/2)][half-1]='#';return out.map(r=>r.join(''))});
-document.getElementById('pxNew').onclick=()=>{let k=1;while(S.names&&S.names['sym'+k]&&S.glyphs[S.names['sym'+k]])k++;
-  const c=newName('sym'+k);pushUndo();S.glyphs[c]={c:[],l:0,r:0,v:0,px:{cells:pxBlank(),h:0}};pxRegen(c,true);
-  const t=[...S.text];t.splice(active+1,0,c);S.text=t.join('');txt.value=textToShow(S.text);dirty.add('g:'+c);changed(null);activate(active+1);pxDrawGrid();pxMsg('Neues Symbol „sym'+k+'“ angelegt. Malen oder „Zufallssymbol“.')};
-document.getElementById('pxMir').onclick=()=>pxEdit(c=>c.map(r=>[...r].reverse().join('')));
-document.getElementById('pxSl').onclick=()=>pxEdit((c,p)=>c.map(r=>r.slice(1)+r[0]));
-document.getElementById('pxSr').onclick=()=>pxEdit((c,p)=>c.map(r=>r[r.length-1]+r.slice(0,-1)));
-document.getElementById('pxClr').onclick=()=>pxEdit(()=>pxBlank());
-document.getElementById('pxDraw').onclick=()=>{pxTool='draw';pxTools()};document.getElementById('pxErase').onclick=()=>{pxTool='erase';pxTools()};
-function pxTools(){document.getElementById('pxDraw').setAttribute('aria-pressed',pxTool==='draw');document.getElementById('pxErase').setAttribute('aria-pressed',pxTool==='erase')}
-document.getElementById('pxPrev').onclick=()=>{if(active>0)activate(active-1)};document.getElementById('pxNext').onclick=()=>{if(active<[...S.text].length-1)activate(active+1)};
-document.getElementById('pxFromDraw').onclick=()=>{const ch=curCh(),g=S.glyphs[ch];if(!ch||!g||!hasInk(g)){pxMsg('Hier gibt es noch keine Zeichnung.');return}
-  const p=pxP(),u=pxCell(),K=16,cv=document.createElement('canvas');cv.width=p.cols*K;cv.height=p.rows*K;const x=cv.getContext('2d',{willReadFrequently:true});
-  const cs=glyphCs({...g,c:g.px?[]:g.c,u:g.u}),b=bounds(cs),sc=K/u,top=(p.rows-p.base)*u;x.setTransform(sc,0,0,-sc,-b.x0*sc,top*sc);x.fillStyle='#000';x.fill(pathOf(cs),'nonzero');
-  const d=x.getImageData(0,0,cv.width,cv.height).data,cells=[];
-  for(let r=0;r<p.rows;r++){let row='';for(let c=0;c<p.cols;c++){let a=0;for(let yy=0;yy<K;yy+=2)for(let xx=0;xx<K;xx+=2)a+=d[((r*K+yy)*cv.width+c*K+xx)*4+3];row+=a/255/(K*K/4)>=.4?'#':'.'}cells.push(row)}
-  pushUndo();g.c=[];g.k=[];g.u=[];g.px={cells,h:0};pxRegen(ch,true);dirty.add('g:'+ch);MC.clear();changed(ch);pxDrawGrid();pxMsg('Zeichnung aufs Raster übertragen.')};
-function pxGlobal(){cancelAnimationFrame(pxRaf);pxRaf=requestAnimationFrame(()=>{const n=pxRegenAll();changed(null);pxDrawGrid();if(!n)return})}
-for(const [k,id,mx] of [['r','pxR',100],['j','pxJ',100],['gap','pxG',95]]){
-  const sl=document.getElementById(id),nu=document.getElementById(id+'n');
-  const set=v=>{S.px={...pxP(),[k]:v};pxGlobal()};
-  sl.addEventListener('input',()=>{nu.value=sl.value;nu.classList.remove('bad');set(+sl.value)});
-  nu.addEventListener('input',()=>{const t=nu.value.trim(),v=Number(t);if(t===''||!Number.isFinite(v)||v<0||v>mx){nu.classList.add('bad');pxMsg(`Bitte eine Zahl von 0 bis ${mx} eingeben.`);return}nu.classList.remove('bad');pxMsg('');sl.value=Math.min(+sl.max,v);set(v)})}
-document.getElementById('pxOut').onchange=e=>{S.px={...pxP(),o:e.target.checked?1:0};pxGlobal()};
-document.getElementById('pxOT').oninput=e=>{S.px={...pxP(),ot:+e.target.value};pxGlobal()};
-document.getElementById('pxDiag').onchange=e=>{S.px={...pxP(),d:e.target.checked?1:0};pxGlobal()};
-for(const b of document.querySelectorAll('[data-pxm]'))b.onclick=()=>{S.px={...pxP(),m:+b.dataset.pxm};pxGlobal()};
-for(const b of document.querySelectorAll('[data-pxs]'))b.onclick=()=>{const p=pxP(),a=b.dataset.pxs;let {cols,rows}=p;
-  if(a==='c+')cols=Math.min(20,cols+1);if(a==='c-')cols=Math.max(3,cols-1);if(a==='r+')rows=Math.min(24,rows+1);if(a==='r-')rows=Math.max(5,rows-1);
-  if(cols===p.cols&&rows===p.rows)return;
-  const st=document.getElementById('pxStretch').checked;
-  if(st){for(const g of Object.values(S.glyphs))if(g.px){const o=Array.from({length:p.rows},(_,r)=>(g.px.cells[r]||'').padEnd(p.cols,'.'));
-    g.px.cells=Array.from({length:rows},(_,r)=>{const sr=Math.min(p.rows-1,Math.floor((r+.5)*p.rows/rows));let t='';for(let c=0;c<cols;c++)t+=o[sr][Math.min(p.cols-1,Math.floor((c+.5)*p.cols/cols))];return t})}}
-  else{
-  for(const g of Object.values(S.glyphs))if(g.px){for(let r=0;r<g.px.cells.length;r++){const row=g.px.cells[r];if(r>=rows&&/#/.test(row)||(cols<p.cols&&/#/.test(row.slice(cols)))){pxMsg('Dafür müssten Zellen gelöscht werden. Erst leeren oder verschieben.');return}}}
-  for(const g of Object.values(S.glyphs))if(g.px)g.px.cells=Array.from({length:rows},(_,r)=>(g.px.cells[r]||'').padEnd(cols,'.').slice(0,cols))}
-  S.px={...p,cols,rows,base:Math.min(p.base,rows-3)};pxGlobal()};
-const PXS={A:'.###./#...#/#...#/#####/#...#/#...#/#...#',B:'####./#...#/#...#/####./#...#/#...#/####.',C:'.####/#..../#..../#..../#..../#..../.####',D:'####./#...#/#...#/#...#/#...#/#...#/####.',E:'#####/#..../#..../####./#..../#..../#####',F:'#####/#..../#..../####./#..../#..../#....',G:'.####/#..../#..../#.###/#...#/#...#/.###.',H:'#...#/#...#/#...#/#####/#...#/#...#/#...#',I:'#####/..#../..#../..#../..#../..#../#####',J:'..###/....#/....#/....#/....#/#...#/.###.',K:'#...#/#..#./#.#../##.../#.#../#..#./#...#',L:'#..../#..../#..../#..../#..../#..../#####',M:'#...#/##.##/#.#.#/#.#.#/#...#/#...#/#...#',N:'#...#/##..#/#.#.#/#..##/#...#/#...#/#...#',O:'.###./#...#/#...#/#...#/#...#/#...#/.###.',P:'####./#...#/#...#/####./#..../#..../#....',Q:'.###./#...#/#...#/#...#/#.#.#/#..#./.##.#',R:'####./#...#/#...#/####./#.#../#..#./#...#',S:'.####/#..../#..../.###./....#/....#/####.',T:'#####/..#../..#../..#../..#../..#../..#..',U:'#...#/#...#/#...#/#...#/#...#/#...#/.###.',V:'#...#/#...#/#...#/#...#/#...#/.#.#./..#..',W:'#...#/#...#/#...#/#.#.#/#.#.#/##.##/#...#',X:'#...#/#...#/.#.#./..#../.#.#./#...#/#...#',Y:'#...#/#...#/.#.#./..#../..#../..#../..#..',Z:'#####/....#/...#./..#../.#.../#..../#####',
- '0':'.###./#...#/#..##/#.#.#/##..#/#...#/.###.','1':'..#../.##../..#../..#../..#../..#../.###.','2':'.###./#...#/....#/...#./..#../.#.../#####','3':'####./....#/....#/.###./....#/....#/####.','4':'#...#/#...#/#...#/#####/....#/....#/....#','5':'#####/#..../####./....#/....#/#...#/.###.','6':'.###./#..../#..../####./#...#/#...#/.###.','7':'#####/....#/...#./..#../.#.../.#.../.#...','8':'.###./#...#/#...#/.###./#...#/#...#/.###.','9':'.###./#...#/#...#/.####/....#/....#/.###.',
- a:'2|.###./....#/.####/#...#/.####',b:'0|#..../#..../####./#...#/#...#/#...#/####.',c:'2|.####/#..../#..../#..../.####',d:'0|....#/....#/.####/#...#/#...#/#...#/.####',e:'2|.###./#...#/#####/#..../.####',f:'0|..##./.#.../####./.#.../.#.../.#.../.#...',g:'2|.####/#...#/#...#/.####/....#/....#/.###.',h:'0|#..../#..../####./#...#/#...#/#...#/#...#',i:'0|..#../...../.##../..#../..#../..#../.###.',j:'0|...#./...../..##./...#./...#./...#./...#./#..#./.##..',k:'0|#..../#..../#..#./#.#../##.../#.#../#..#.',l:'0|.##../..#../..#../..#../..#../..#../.###.',m:'2|##.#./#.#.#/#.#.#/#.#.#/#.#.#',n:'2|####./#...#/#...#/#...#/#...#',o:'2|.###./#...#/#...#/#...#/.###.',p:'2|####./#...#/#...#/#...#/####./#..../#....',q:'2|.####/#...#/#...#/#...#/.####/....#/....#',r:'2|#.###/##..#/#..../#..../#....',s:'2|.####/#..../.###./....#/####.',t:'1|.#.../####./.#.../.#.../.#.../..##.',u:'2|#...#/#...#/#...#/#...#/.####',v:'2|#...#/#...#/#...#/.#.#./..#..',w:'2|#...#/#...#/#.#.#/#.#.#/.#.#.',x:'2|#...#/.#.#./..#../.#.#./#...#',y:'2|#...#/#...#/#...#/.####/....#/....#/.###.',z:'2|#####/...#./..#../.#.../#####',
- '.':'6|..#..',',':'6|..#../.#...',':':'3|..#../...../...../..#..','!':'0|..#../..#../..#../..#../..#../...../..#..','?':'0|.###./#...#/....#/...#./..#../...../..#..','-':'3|.###.'};
-function pxStarterCells(def){const p=pxP();let off=p.rows-p.base-7,rows;if(def.includes('|')){const [st,r]=def.split('|');off+=+st;rows=r.split('/')}else rows=def.split('/');
-  const cells=pxBlank();rows.forEach((row,i)=>{const y=off+i;if(y<0||y>=p.rows)return;const a=cells[y].split('');for(let c=0;c<p.cols&&c<row.length;c++)if(row[c]==='#')a[c]='#';cells[y]=a.join('')});return cells}
-document.getElementById('pxStarter').onclick=e=>confirm2(e.currentTarget,()=>{let n=0;for(const [ch,def] of Object.entries(PXS)){const g=S.glyphs[ch];if(g&&hasInk(g)&&!g.px)continue;
-  if(!g)S.glyphs[ch]={c:[],l:0,r:0,v:0};const gg=S.glyphs[ch];gg.px={cells:pxStarterCells(def),h:0};pxRegen(ch,true);dirty.add('g:'+ch);n++}
-  MC.clear();changed(null);fit();pxDrawGrid();pxMsg(`${n} Starter-Buchstaben gesetzt. Selbst Gezeichnetes bleibt.`)});
-function pxToggle(on){pxOpen=on;document.getElementById('pxPanel').hidden=!on;document.querySelector('.stage').classList.toggle('gen',on);document.getElementById('bPx').setAttribute('aria-pressed',on);
-  if(on&&genBase)genClose(false);if(on){pxDrawGrid()}relayout();fit()}
-document.getElementById('bPx').onclick=()=>pxToggle(!pxOpen);document.getElementById('pxDone').onclick=()=>pxToggle(false);
 
 fName.oninput=()=>{S.name=fName.value;document.getElementById('fontNameLbl').textContent=S.name;changed(null)};
 fSp.oninput=()=>{S.spacing=+fSp.value;MC.clear();syncUI();changed(null)};
