@@ -16,6 +16,7 @@ export/ttf.js
 export/cff.js
 export/zip.js
 rules/rules.js
+rules/learn.js
 export/features.js
 ui/layout.js
 ui/template-font.js
