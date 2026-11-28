@@ -31,3 +31,18 @@ test('English UI starts without errors', async () => {
   const app = await openApp({ lang: 'en' });
   try { assert.deepEqual(app.errors, []); } finally { await app.close(); }
 });
+
+test('old projects with pixel-mode glyphs still load and export', async () => {
+  const app = await openApp();
+  try {
+    const ok = await app.page.evaluate(() => {
+      const o = serial();
+      o.glyphs['I'] = { px: { cells: ['#'], h: 0 }, c: [{ z: true, p: [P(100, 0), P(200, 0), P(200, 700), P(100, 700)] }], k: [], l: 0, r: 0 };
+      Object.assign(S, fromSerial(o)); ACK = null; MC.clear();
+      const r = buildTTF();
+      return r.glyphs > 0 && !!S.glyphs['I'].c.length;
+    });
+    assert.ok(ok);
+    assert.deepEqual(app.errors, []);
+  } finally { await app.close(); }
+});

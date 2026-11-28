@@ -19,7 +19,7 @@ function renderTabs(parts){
   insp.setAttribute('role','tabpanel');
   insp.innerHTML=by[inspTab].join('')||'<span class="note">Hier gibt es für die aktuelle Auswahl nichts einzustellen.</span>'}
 document.getElementById('inspTabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;inspTab=b.dataset.tab;renderInsp()});
-function renderInsp(){if(typeof pxOpen!=='undefined'&&pxOpen)pxDrawGrid();
+function renderInsp(){
   const parts=[];const ch=curCh();const it=curItem();
   if(tool==='brush'&&(nib.n==='broad'||nib.ov))parts.push(`<div class="blk"><span class="lbl">Neigung</span><span class="num">${nib.tilt?'vom Pencil':nib.a+'°'}</span><button class="solid" data-act="tilt" aria-pressed="${nib.tilt}">Neigung vom Pencil nehmen</button></div>`);
   if(tool==='select')parts.push(`<div class="blk"><span class="lbl">Auswahl</span><span class="seg">${btn('sm-r','▭ Rechteck','aria-pressed="'+(selMode==='r')+'"')}${btn('sm-l','Lasso','aria-pressed="'+(selMode==='l')+'"')}</span><span class="note">Mit dem Stift ins Leere ziehen wählt aus. Ausgewähltes ziehen verschiebt es.</span></div>`);

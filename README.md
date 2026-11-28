@@ -11,7 +11,6 @@ Der Code liegt in `src/`, aufgeteilt nach Bereichen:
 - `src/core/` Datenmodell, Geometrie, Federstriche, Abstände, Kerning
 - `src/export/` TTF-, CFF/OTF- und ZIP-Writer, OpenType-Feature-Compiler
 - `src/rules/` Regel-Buchstaben aus Skeletten
-- `src/raster/` Pixel-Raster-Modus
 - `src/ui/` Oberfläche (Canvas, Eingabe, Inspektor, Sheets, Sprache)
 
 `index.html` wird daraus gebaut (Reihenfolge in `src/order.txt`) und bleibt eine einzige Datei, weil GitHub Pages und das claude.ai-Artifact das brauchen. Nie `index.html` direkt bearbeiten.

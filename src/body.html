@@ -6,7 +6,7 @@
     <div class="brand">Glyphwerk<small id="fontNameLbl">Meine Schrift</small></div>
     <input id="txt" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Text zum Bearbeiten">
     <span class="status" id="status">lädt…</span>
-    <div class="grp"><button id="bFile">Datei</button><button id="bGen" aria-pressed="false" title="Schrift aus Regeln erzeugen">Regeln</button><button id="bSet">Zeichensatz</button><button id="bFea">Features</button><button id="bTest">Probetext</button><button id="bExp">Schrift &amp; Export</button><button id="bFb">Feedback</button></div><button id="bPx" class="solid" aria-pressed="false" title="Pixel-Raster">Raster</button><button id="bLang" class="solid" title="Sprache" aria-label="Sprache">EN</button>
+    <div class="grp"><button id="bFile">Datei</button><button id="bGen" aria-pressed="false" title="Schrift aus Regeln erzeugen">Regeln</button><button id="bSet">Zeichensatz</button><button id="bFea">Features</button><button id="bTest">Probetext</button><button id="bExp">Schrift &amp; Export</button><button id="bFb">Feedback</button></div><button id="bLang" class="solid" title="Sprache" aria-label="Sprache">EN</button>
   </header>
   <div class="stage"><canvas id="cv"></canvas><div class="cleanbar" id="cleanBar"><label for="blurR">Blur</label><input id="blurR" type="range" min="0" max="12" step="0.5" value="0"><b id="blurV" class="num">0</b><button class="solid" id="bCleanX">Zurück (E)</button></div><textarea id="ed" aria-label="Text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" rows="1"></textarea><div class="hint" id="hint"></div>
     <div class="rail left" aria-label="Navigation">
@@ -52,25 +52,6 @@
       <button id="bUndo" title="Rückgängig" aria-label="Rückgängig">↶</button>
       <button id="bRedo" title="Wiederholen" aria-label="Wiederholen">↷</button>
     </div>
-    <div class="genp" id="pxPanel" hidden role="group" aria-label="Pixel-Raster">
-      <div class="px-wrap">
-        <div class="px-left"><canvas id="pxCv" aria-label="Raster"></canvas></div>
-        <div class="px-right">
-          <div class="px-bar"><button class="solid" id="pxPrev" aria-label="Vorheriger Buchstabe">‹</button><b id="pxCh" class="num"></b><button class="solid" id="pxNext" aria-label="Nächster Buchstabe">›</button>
-            <button class="solid" id="pxDraw" aria-pressed="true">Malen</button><button class="solid" id="pxErase" aria-pressed="false">Radieren</button>
-            <button class="solid" id="pxUndo" aria-label="Rückgängig">↶</button><button class="solid" id="pxRedo" aria-label="Wiederholen">↷</button></div>
-          <div class="px-bar"><button class="solid" id="pxMir">Spiegeln</button><button class="solid" id="pxSl" aria-label="Nach links">←</button><button class="solid" id="pxSr" aria-label="Nach rechts">→</button><button class="solid" id="pxClr">Leeren</button><button class="solid" id="pxFromDraw" title="Zeichnung auf das Raster übertragen">Aus Zeichnung</button></div>
-          <div class="px-row"><label for="pxR">Pixelrundung</label><input type="range" id="pxR" min="0" max="100"><input type="number" id="pxRn" min="0" max="100" step="1"></div>
-          <div class="px-row"><label for="pxJ">Liquid-Brücke</label><input type="range" id="pxJ" min="0" max="100"><input type="number" id="pxJn" min="0" max="100" step="1"></div>
-          <div class="px-row"><label for="pxG">Zellabstand</label><input type="range" id="pxG" min="0" max="80"><input type="number" id="pxGn" min="0" max="95" step="1"></div>
-          <div class="px-bar"><span class="note">Verbinden</span><span class="seg" role="group" aria-label="Verbinden"><button class="solid" data-pxm="0">Aus</button><button class="solid" data-pxm="1">Waagr.</button><button class="solid" data-pxm="2">Senkr.</button><button class="solid" data-pxm="3">Beides</button></span></div>
-          <div class="px-bar"><label class="note"><input type="checkbox" id="pxOut"> Nur Kontur</label><span class="px-row" style="flex:1"><label for="pxOT">Konturdicke</label><input type="range" id="pxOT" min="5" max="45"></span></div>
-          <div class="px-bar"><label class="note"><input type="checkbox" id="pxDiag"> Diagonal verbinden</label><label class="note"><input type="checkbox" id="pxStretch" checked> Beim Ändern der Größe strecken</label></div>
-          <div class="px-bar"><span class="px-step"><button class="solid" data-pxs="c-">−</button><b id="pxCols" class="num"></b><button class="solid" data-pxs="c+">+</button><span class="note">Spalten</span><button class="solid" data-pxs="r-">−</button><b id="pxRows" class="num"></b><button class="solid" data-pxs="r+">+</button><span class="note">Zeilen</span></span><button class="solid" id="pxStarter">Starter-Alphabet</button><button class="solid" id="pxRand">Zufallssymbol</button><button class="solid" id="pxNew">+ Symbol</button><button class="primary" id="pxDone">Fertig</button></div>
-          <div class="msg" id="pxMsg" role="status"></div>
-        </div>
-      </div>
-    </div>
     <div class="genp" id="genPanel" hidden role="group" aria-label="Schrift aus Regeln">
       <div class="gp-grid">
         <label><span>Stärke <b id="gWv"></b></span><input type="range" id="gW" min="16" max="220" step="2"></label>
@@ -88,7 +69,6 @@
       </div>
       <div class="gp-act">
         <button id="gEnd" class="solid" aria-pressed="false">Enden flach</button>
-        <button id="gAll" class="solid" aria-pressed="false" title="Auch Buchstaben ersetzen, die du selbst gezeichnet hast">Gezeichnete ersetzen</button>
         <button id="gReset" class="solid">Standard</button>
         <span class="grow"></span>
         <button id="gCancel" class="solid">Verwerfen</button>

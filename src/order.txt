@@ -4,7 +4,6 @@ body.html
 core/state.js
 ui/i18n.js
 core/examples.js
-raster/pxgeo.js
 core/examples-shapes.js
 core/geometry.js
 core/strokes.js
@@ -31,7 +30,7 @@ ui/sample-text.js
 ui/sheets.js
 ui/features-sheet.js
 rules/rules-ui.js
-raster/raster-ui.js
+ui/export-sheet.js
 ui/typing.js
 ui/boot.js
 tail.html
