@@ -19,7 +19,7 @@ function genOpen(){if(genBase)return;if(S.gen)genP={...GENP0,...S.gen};selStroke
   for(const ch of GEN_CH){snaps[ch]=snap(ch);const g=S.glyphs[ch];hand[ch]=!S.example&&hasInk(g)&&!isGenGlyph(g)}
   genBase={snaps,hand,mx:JSON.stringify(S.mx||{}),gen:JSON.stringify(genP)};document.getElementById('genPanel').hidden=false;document.querySelector('.stage').classList.add('gen');
   document.getElementById('bGen').setAttribute('aria-pressed','true');genSync();genApply();fit();
-  const n=Object.values(hand).filter(Boolean).length;alertMsg(n?`${n} selbst gezeichnete Buchstaben bleiben, solange „Gezeichnete ersetzen“ aus ist.`:'Regler bewegen, die Buchstaben ändern sich sofort im Text.')}
+  const n=Object.values(hand).filter(Boolean).length;alertMsg(n?`${n} selbst gezeichnete Buchstaben bleiben, wie sie sind. „Von meiner Hand lernen“ übernimmt ihren Stil.`:'Zeichne n, o, H und O selbst, dann lernen die Regeln deinen Stil. Oder bewege die Regler.')}
 function genClose(keep){if(!genBase)return;cancelAnimationFrame(genRaf);
   if(keep){genApply();const ch=[];for(const c of GEN_CH)if(snap(c).d!==genBase.snaps[c].d)ch.push(c);
     if(ch.length){undoS.push({multi:ch.map(c=>genBase.snaps[c])});redoS.length=0;updButtons()}
@@ -32,6 +32,15 @@ document.getElementById('bGen').onclick=()=>{genBase?genClose(true):genOpen()};
 for(const [k,id] of Object.entries(gIn))document.getElementById(id).addEventListener('input',e=>{const v=+e.target.value;if(gMx(k)){S.mx=S.mx||{};S.mx[k]=v;applyMx();MC.clear();dirty.add('meta')}else genP[k]=v;document.getElementById(id+'v').textContent=v+gUnit[k];genQueue()});
 document.getElementById('gEnd').onclick=()=>{genP.e=genP.e==='f'?'r':'f';genSync();genQueue()};
 document.getElementById('gReset').onclick=()=>{genP={...GENP0};S.mx={};applyMx();MC.clear();dirty.add('meta');genSync();genQueue()};
+/* Hand lehrt Maschine: rules from the person's own n o H O (see rules/learn.js) */
+document.getElementById('gLearn').onclick=()=>{
+  if(S.example){alertMsg('Erst eigene Buchstaben zeichnen: n, o, H und O. Die Beispielformen zählen nicht.');return}
+  const b=document.getElementById('gLearn');b.disabled=true;alertMsg('Lerne aus deinen Buchstaben …');
+  setTimeout(()=>{let L=null;try{L=learnRules(genP)}finally{b.disabled=false}
+    if(!L){alertMsg('Zeichne mindestens zwei von n, o, H, O selbst, dann kann ich daraus lernen.');return}
+    genP={...genP,...L.P};S.mx=S.mx||{};S.mx.xh=L.xh;S.mx.cap=L.cap;applyMx();MC.clear();dirty.add('meta');genSync();genQueue();
+    const q=L.err<1.5?'passt gut':L.err<5?'passt ungefähr':'passt nur grob, deine Formen gehen über die Regeln hinaus';
+    alertMsg(`Gelernt aus ${L.from.join(', ')}: Stärke ${genP.w}, Kontrast ${genP.c} %, Federwinkel ${genP.a}°, Breite ${genP.wd} %, Neigung ${genP.sl}°, x-Höhe ${L.xh}. Ergebnis ${q}.`)},30)};
 document.getElementById('gCancel').onclick=()=>genClose(false);
 document.getElementById('gOk').onclick=()=>genClose(true);
 
